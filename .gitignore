@@ -32,4 +32,8 @@
 *.app
 
 .vscode
-app.dSYM/
+*.dSYM/
+*.code-workspace
+app
+commitlint.config.js
+.husky/commit-msg
