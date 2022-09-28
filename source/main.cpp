@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include"../headers/shaderClass.h"
+#include"../headers/texture.h"
 #include"../headers/VAO.h"
 #include"../headers/VBO.h"
 #include"../headers/EBO.h"
@@ -93,34 +94,8 @@ int main()
     GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
     // Texture
-    int widthImg, heightImg, numColCh;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* bytes = stbi_load("resources/textures/scafell.png", &widthImg, &heightImg, &numColCh, 0);
-
-    GLuint texture;
-    glGenTextures(1, &texture);
-    // assign texture to texture unit
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    // glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(bytes);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
-    shaderProgram.Activate();
-    glUniform1i(tex0Uni, 0);
+	Texture scafell("resources/textures/scafell.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	scafell.texUnit(shaderProgram, "tex0", 0);
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -140,7 +115,8 @@ int main()
 		// Tell OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
         glUniform1f(uniID, 0.f);
-        glBindTexture(GL_TEXTURE_2D, texture);
+		// Binds texture so that is appears in rendering
+		scafell.Bind();
 		// Bind the VAO so OpenGL knows to use it
 		VAO1.Bind();
 		// Draw primitives, number of indices, datatype of indices, index of indices
@@ -157,7 +133,7 @@ int main()
 	VAO1.Delete();
 	VBO1.Delete();
 	EBO1.Delete();
-    glDeleteTextures(1, &texture);
+    scafell.Delete();
 	shaderProgram.Delete();
     	// Delete window before ending the program
 	glfwDestroyWindow(window);
