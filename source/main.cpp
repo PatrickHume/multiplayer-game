@@ -24,10 +24,10 @@ const unsigned int SCR_HEIGHT = 600;
 // set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 GLfloat vertices[] = {
-    -0.5f,  0.0f, -0.5f,   .8, .7,  .8, 0., 0.,// left back
-    -0.5f,   0.0f,  0.5f,   .2, .1, .9, 1., 0.,// left front
-    0.5f,  0.0f,   -0.5f,    1.,.6, .3, 0., 1.,// right back 
-    0.5f,   0.0f,   0.5f,   .5, .2, .7, 1., 1.,// right front
+    -0.5f,  0.0f, -0.5f,   .8, .7,  .8, 1., 0.,// left back
+    -0.5f,   0.0f,  0.5f,   .2, .1, .9, 0., 0.,// left front
+    0.5f,  0.0f,   -0.5f,    1.,.6, .3, 0., 0.,// right back 
+    0.5f,   0.0f,   0.5f,   .5, .2, .7, 1., 0.,// right front
     0.0f,  0.8f, 0.0f,   .8, .7,  .8, 0.5, 1.,// top
 }; 
 
@@ -37,7 +37,7 @@ GLuint indices[] =
     1, 3, 2, // Base
     0, 4, 1, // 
     2, 4, 3, // 
-    0, 4, 2, // 
+    1, 4, 3, // 
     2, 4, 0, // 
 };
 
@@ -110,6 +110,8 @@ int main()
     float rotation = 0.0f;
     double prevTime = glfwGetTime();
 
+    glEnable(GL_DEPTH_TEST);
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -121,7 +123,7 @@ int main()
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// Tell OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
 
