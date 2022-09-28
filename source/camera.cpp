@@ -53,4 +53,35 @@ void Camera::Inputs(GLFWwindow* window)
 	{
 		speed = 0.1f;
 	}
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+        if(firstClick)
+        {
+            glfwSetCursorPos(window, (width / 2), (height / 2));
+            firstClick = false;
+        }
+
+        double mouseX, mouseY;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+
+        float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
+        float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
+
+        glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotX), glm::normalize(glm::cross(orientation, up)));
+
+        if (((glm::angle(newOrientation, up) >= glm::radians(0.5f)) and (glm::angle(newOrientation, -up) >= glm::radians(0.5f)))){
+            orientation = newOrientation;
+        }
+
+        orientation = glm::rotate(orientation, glm::radians(-rotY), up);
+
+        glfwSetCursorPos(window, (width / 2), (height / 2));
+    }
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE){
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        firstClick = true;
+    }
 }
