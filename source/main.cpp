@@ -20,12 +20,12 @@ const unsigned int SCR_HEIGHT = 600;
 // set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 GLfloat vertices[] = {
-    -0.5f, -0.5f, 0.0f, // left  
-        0.5f, -0.5f, 0.0f, // right 
-        0.0f,  0.5f, 0.0f,  // top  
-    -0.5f/2, 0, 0.0f, // inner left  
-        0.5f/2, 0, 0.0f, // inner right 
-        0.0f,  -0.5f, 0.0f,  // inner down   
+    -0.5f, -0.5f, 0.0f,     .8, .7, .8,// left  
+        0.5f, -0.5f, 0.0f,  .2, .1, .9,// right 
+        0.0f,  0.5f, 0.0f,  1., .6, .3,// top  
+    -0.5f/2, 0, 0.0f,       .5, .2,.7,// inner left  
+        0.5f/2, 0, 0.0f,    .9, .45,.1,// inner right 
+        0.0f,  -0.5f, 0.0f, .1, .3, .9,// inner down   
 }; 
 
 GLuint indices[] = 
@@ -84,7 +84,8 @@ int main()
 	EBO EBO1(indices, sizeof(indices));
 
 	// Links VBO to VAO
-	VAO1.LinkVBO(VBO1, 0);
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*) 0);
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*) (3 * sizeof(float)));
 	// Unbind all to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
