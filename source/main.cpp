@@ -208,6 +208,7 @@ int main()
         camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
         shaderProgram.Activate();
+        glUniform3f(glGetUniformLocation(shaderProgram.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
         camera.Matrix(shaderProgram, "camMatrix");
         
 		// Binds texture so that is appears in rendering
