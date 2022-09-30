@@ -37,3 +37,5 @@
 app
 commitlint.config.js
 .husky/commit-msg
+
+*.png
