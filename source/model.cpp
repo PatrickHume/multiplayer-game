@@ -94,7 +94,7 @@ void Model::updateWorld(){
     glm::mat4 rot = glm::mat4(1.0f);
     glm::mat4 sca = glm::mat4(1.0f);
 
-    strans = glm::translate(trans, position);
+    trans = glm::translate(trans, position);
     rot = glm::toMat4(quaternion);
     sca = glm::scale(sca, scale);
 

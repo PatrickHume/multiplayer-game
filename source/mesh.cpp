@@ -4,6 +4,11 @@ Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::v
     Mesh::vertices = vertices;
     Mesh::indices = indices;
     Mesh::textures = textures;
+    std::cout << "----------" << textures.size() << std::endl;
+    for (int i = 0; i < textures.size(); i++){
+        std::cout << textures[i].imageName << std::endl;
+    }
+    std::cout << "----------" << std::endl;
 
     // Generates Vertex Array Object and binds it
 	VAO.Bind();

@@ -11,6 +11,7 @@ class Texture
     public:
         GLuint ID;
         const char* type;
+        std::string imageName;
         GLuint unit;
         Texture(const char* image, const char* texType, GLuint slot);
         

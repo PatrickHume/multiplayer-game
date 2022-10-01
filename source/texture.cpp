@@ -2,6 +2,7 @@
 
 Texture::Texture(const char* image, const char* texType, GLuint slot)
 {
+    imageName = std::string(image);
 	// Assigns the type of the texture to the texture object
 	type = texType;
 

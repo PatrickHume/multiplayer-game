@@ -61,8 +61,8 @@ int main()
     model.setModelOrientation(glm::vec3(1.0f,0.0f,1.0f));
     model.updateLocal();
 
-    Model otherModel("resources/models/lada/scene.gltf");
-    otherModel.setModelScale(glm::vec3(0.1f,0.1f,0.1f));
+    Model otherModel("resources/models/mig-21/scene.gltf");
+    otherModel.setModelScale(glm::vec3(20.0f,20.0f,20.0f));
     otherModel.setModelPosition(glm::vec3(10.0f,0.0f,0.0f));
     otherModel.updateLocal();
 
