@@ -56,9 +56,14 @@ int main()
     // Generates Shader object using shaders defualt.vert and default.frag
     Shader shaderProgram("resources/shaders/default.vert","resources/shaders/default.frag");
 
-    std::cout << "in model" << std::endl;
     Model model("resources/models/lada/scene.gltf");
-    std::cout << "out model" << std::endl;
+    model.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
+    model.updateLocal();
+
+    Model otherModel("resources/models/lada/scene.gltf");
+    otherModel.setModelScale(glm::vec3(0.1f,0.1f,0.1f));
+    otherModel.setModelPosition(glm::vec3(10.0f,0.0f,0.0f));
+    otherModel.updateLocal();
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -74,7 +79,7 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 50.0f));
+    Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 10.0f));
 
     // render loop
     // -----------
@@ -94,6 +99,7 @@ int main()
         camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
         model.Draw(shaderProgram, camera);
+        otherModel.Draw(shaderProgram, camera);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

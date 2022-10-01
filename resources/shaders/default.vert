@@ -10,15 +10,13 @@ out vec3 color;
 out vec2 texCoord;
 
 uniform mat4 camMatrix;
+uniform mat4 world;
+uniform mat4 local;
 uniform mat4 model;
-uniform mat4 translation;
-uniform mat4 rotation;
-uniform mat4 scale;
-
 
 void main()
 {
-    crntPos = vec3(model * translation * -rotation * scale * vec4(aPos, 1.0));
+    crntPos = vec3(local * model * vec4(aPos, 1.0));
     norm = aNormal;
     color = aColor;
     texCoord = mat2(1.0, 0.0, 0.0, -1.0) * aTex;

@@ -1,5 +1,6 @@
 #include"../headers/model.h"
 
+
 Model::Model(const char* file)
 {
     std::string text = get_file_contents(file);
@@ -14,10 +15,93 @@ Model::Model(const char* file)
     std::cout << "traversed" << std::endl;
 }
 
+glm::vec3 Model::getPosition(){ return position;}
+glm::quat Model::getQuaternion(){ return quaternion;}
+glm::vec3 Model::getScale(){    return scale;}
+// apple translation
+void Model::applyTranslation(glm::vec3 position)
+{
+    Model::position = Model::position + position;
+}
+// apply rotation around axis by some radians
+void Model::applyRotation(glm::vec3 axisOrientation, float angle)
+{
+    Model::quaternion = glm::rotate(quaternion, angle, axisOrientation);
+}
+// apply a scale to squash or strech the model
+void Model::applyScale(glm::vec3 scale)
+{
+    Model::scale = glm::vec3(
+        Model::scale.x*scale.x,
+        Model::scale.y*scale.y,
+        Model::scale.z*scale.z);
+}
+
+void Model::setPosition(glm::vec3 position)
+{
+    Model::position = position;
+}
+void Model::setOrientation(glm::vec3 orientation, glm::vec3 up)
+{
+    if (up == glm::vec3(0.0f,0.0f,0.0f))
+    {
+        up = glm::normalize(glm::cross(orientation, glm::vec3(0.0f,1.0f,0.0f)));
+    }
+    glm::mat4 rotMatrix = glm::lookAt(glm::vec3(0), orientation, glm::normalize(up));
+    Model::quaternion = glm::quat_cast(rotMatrix);  
+}
+void Model::setScale(glm::vec3 scale)
+{
+    Model::scale = scale;
+}
+
+void Model::setModelPosition(glm::vec3 position)
+{
+    Model::modelPosition = position;
+}
+void Model::setModelOrientation(glm::vec3 orientation, glm::vec3 up)
+{
+    if (up == glm::vec3(0.0f,0.0f,0.0f))
+    {
+        up = glm::normalize(glm::cross(orientation, glm::vec3(0.0f,1.0f,0.0f)));
+    }
+    glm::mat4 rotMatrix = glm::lookAt(glm::vec3(0), orientation, glm::normalize(up));
+    Model::modelQuaternion = glm::quat_cast(rotMatrix);
+}
+void Model::setModelScale(glm::vec3 scale)
+{
+    Model::modelScale = scale;
+}
+
+void Model::updateLocal(){
+    glm::mat4 trans = glm::mat4(1.0f);
+    glm::mat4 rot = glm::mat4(1.0f);
+    glm::mat4 sca = glm::mat4(1.0f);
+
+    trans = glm::translate(trans, modelPosition);
+    rot = glm::toMat4(quaternion);
+    sca = glm::scale(sca, modelScale);
+
+    local = trans * rot * sca;
+}
+
+void Model::updateWorld(){
+    glm::mat4 trans = glm::mat4(1.0f);
+    glm::mat4 rot = glm::mat4(1.0f);
+    glm::mat4 sca = glm::mat4(1.0f);
+
+    trans = glm::translate(trans, position);
+    rot = glm::toMat4(quaternion);
+    sca = glm::scale(sca, scale);
+
+    world = trans * rot * sca;
+}
+
 void Model::Draw(Shader& shader, Camera& camera)
 {
+    updateWorld();
     for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::Draw(shader, camera, matricesMeshes[i]);
+        meshes[i].Mesh::Draw(shader, camera, world, local, matricesMeshes[i]);
     }
 }
 
