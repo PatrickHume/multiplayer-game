@@ -43,6 +43,8 @@ void Model::setPosition(glm::vec3 position)
 }
 void Model::setOrientation(glm::vec3 orientation, glm::vec3 up)
 {
+    //orientation = glm::normalize(orientation);
+
     if (up == glm::vec3(0.0f,0.0f,0.0f))
     {
         up = glm::normalize(glm::cross(orientation, glm::vec3(0.0f,1.0f,0.0f)));
@@ -61,6 +63,8 @@ void Model::setModelPosition(glm::vec3 position)
 }
 void Model::setModelOrientation(glm::vec3 orientation, glm::vec3 up)
 {
+    //orientation = glm::normalize(orientation);
+
     if (up == glm::vec3(0.0f,0.0f,0.0f))
     {
         up = glm::normalize(glm::cross(orientation, glm::vec3(0.0f,1.0f,0.0f)));
@@ -79,7 +83,7 @@ void Model::updateLocal(){
     glm::mat4 sca = glm::mat4(1.0f);
 
     trans = glm::translate(trans, modelPosition);
-    rot = glm::toMat4(quaternion);
+    rot = glm::toMat4(modelQuaternion);
     sca = glm::scale(sca, modelScale);
 
     local = trans * rot * sca;
@@ -90,7 +94,7 @@ void Model::updateWorld(){
     glm::mat4 rot = glm::mat4(1.0f);
     glm::mat4 sca = glm::mat4(1.0f);
 
-    trans = glm::translate(trans, position);
+    strans = glm::translate(trans, position);
     rot = glm::toMat4(quaternion);
     sca = glm::scale(sca, scale);
 

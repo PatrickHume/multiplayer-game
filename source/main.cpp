@@ -58,6 +58,7 @@ int main()
 
     Model model("resources/models/lada/scene.gltf");
     model.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
+    model.setModelOrientation(glm::vec3(1.0f,0.0f,1.0f));
     model.updateLocal();
 
     Model otherModel("resources/models/lada/scene.gltf");
