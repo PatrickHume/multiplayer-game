@@ -43,3 +43,5 @@ commitlint.config.js
 *.jpeg
 *.bin
 *.gltf
+
+models

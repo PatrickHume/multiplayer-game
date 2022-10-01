@@ -57,7 +57,7 @@ int main()
     Shader shaderProgram("resources/shaders/default.vert","resources/shaders/default.frag");
 
     std::cout << "in model" << std::endl;
-    Model model("resources/models/sword/scene.gltf");
+    Model model("resources/models/lada/scene.gltf");
     std::cout << "out model" << std::endl;
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
