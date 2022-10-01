@@ -39,3 +39,7 @@ commitlint.config.js
 .husky/commit-msg
 
 *.png
+*.jpg
+*.jpeg
+*.bin
+*.gltf

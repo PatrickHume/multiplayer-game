@@ -1,6 +1,6 @@
 #include"../headers/texture.h"
 
-Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum format, GLenum pixelType)
+Texture::Texture(const char* image, const char* texType, GLuint slot)
 {
 	// Assigns the type of the texture to the texture object
 	type = texType;
@@ -9,8 +9,12 @@ Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum for
 	int widthImg, heightImg, numColCh;
 	// Flips the image so it appears right side up
 	stbi_set_flip_vertically_on_load(true);
+
+    std::cout << image << ", " << texType << ", " << numColCh << std::endl;
 	// Reads the image from a file and stores it in bytes
 	unsigned char* bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
+
+    std::cout << image << ", " << texType << ", " << numColCh << std::endl;
 
 	// Generates an OpenGL texture object
 	glGenTextures(1, &ID);
@@ -31,8 +35,45 @@ Texture::Texture(const char* image, const char* texType, GLuint slot, GLenum for
 	// float flatColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
 	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
 
-	// Assigns the image to the OpenGL Texture object
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
+    if (numColCh == 4)
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            widthImg,
+            heightImg,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            bytes
+        );
+    else if (numColCh == 3)
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            widthImg,
+            heightImg,
+            0,
+            GL_RGB,
+            GL_UNSIGNED_BYTE,
+            bytes
+        );
+    else if (numColCh == 1)
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            widthImg,
+            heightImg,
+            0,
+            GL_RED,
+            GL_UNSIGNED_BYTE,
+            bytes
+        );
+    else
+        throw std::invalid_argument("Automatic texture type recognition failed.");
+
 	// Generates MipMaps
 	glGenerateMipmap(GL_TEXTURE_2D);
 
