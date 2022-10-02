@@ -1,14 +1,13 @@
 #include"../headers/mesh.h"
 
-Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::vector <Texture>& textures){
+Mesh::Mesh(
+    std::vector <Vertex>& vertices, 
+    std::vector <GLuint>& indices,  
+    struct Material& material)
+{
     Mesh::vertices = vertices;
     Mesh::indices = indices;
-    Mesh::textures = textures;
-    std::cout << "----------" << textures.size() << std::endl;
-    for (int i = 0; i < textures.size(); i++){
-        std::cout << textures[i].imageName << std::endl;
-    }
-    std::cout << "----------" << std::endl;
+    Mesh::material = material;
 
     // Generates Vertex Array Object and binds it
 	VAO.Bind();
@@ -34,37 +33,38 @@ Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::v
 void Mesh::Draw(
     Shader& shader, 
     Camera& camera,
+    std::vector<Texture>& textures,
     glm::mat4 world,
     glm::mat4 local,
     glm::mat4 matrix)
 {
+
     shader.Activate();
     VAO.Bind();
 
-    unsigned int numDiffuse = 0;
-    unsigned int numSpecular = 0;
-
-    for (unsigned int i = 0; i < textures.size(); i++)
+    // only need to bind the diffuse and specular textures.
+    // these are indexed by material.baseColorTexture and material.metallicRoughnessTexture.
+    // if either are equal to -1, apply no texture
+    if(material.hasBaseColorTex)
     {
-        std::string num;
-        std::string type = textures[i].type;
-        if (type == "diffuse")
-        {
-            num = std::to_string(numDiffuse++);
-        }
-        else if (type == "specular")
-        {
-            num = std::to_string(numSpecular++);
-        }
-        textures[i].texUnit(shader, (type + num).c_str(), i);
-        textures[i].Bind();
-    }
-    glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-    camera.Matrix(shader, "camMatrix");
+        textures[material.baseColorTexture].texUnit(shader, "diffuseTex");
+        textures[material.metallicRoughnessTexture].texUnit(shader, "specularTex");
 
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "world"), 1, GL_FALSE, glm::value_ptr(world));
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "local"), 1, GL_FALSE, glm::value_ptr(local));
+        textures[material.baseColorTexture].Bind();
+        textures[material.metallicRoughnessTexture].Bind();
+    }else{
+        textures[material.baseColorTexture].Unbind();
+        textures[material.metallicRoughnessTexture].Unbind();        
+    }
+
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+
+    // all the material attributes must be sent to the shader
+    //glUniform1i(glGetUniformLocation(shader.ID, "hasBaseColorTex"), material.hasBaseColorTex);
+    glUniform1i(glGetUniformLocation(shader.ID, "doubleSided"),     material.doubleSided);
+    glUniform4fv(glGetUniformLocation(shader.ID, "baseColorFactor"), 1, glm::value_ptr(material.baseColorFactor));
+    glUniform1f(glGetUniformLocation(shader.ID, "metallicFactor"),  material.metallicFactor);
+    glUniform1f(glGetUniformLocation(shader.ID, "roughnessFactor"), material.roughnessFactor);
 
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }

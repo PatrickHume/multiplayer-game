@@ -3,6 +3,8 @@
 
 #include<json/json.h>
 #include"mesh.h"
+#include"shaderClass.h"
+#include"texture.h"
 
 using json = nlohmann::json;
 
@@ -38,10 +40,14 @@ private:
     std::vector<unsigned char> data;
     json JSON;
 
+    std::string fileStr;
+    std::string fileDirectory;
+
     std::vector<Mesh> meshes;
+    std::vector<struct Material> materials;
 
     std::vector<std::string> loadedTexName;
-    std::vector<Texture> loadedTex;
+    std::vector<Texture> textures;
 
     void loadMesh(unsigned int indMesh);
 
@@ -73,6 +79,7 @@ private:
     std::vector<float> getFloats(json accessor);
     std::vector<GLuint> getIndices(json accessor);
     std::vector<Texture> getTextures();
+    std::vector<struct Material> getMaterials();
 
     std::vector<Vertex> assembleVertices(
         std::vector<glm::vec3> positions,

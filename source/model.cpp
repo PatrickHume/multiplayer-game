@@ -3,13 +3,22 @@
 
 Model::Model(const char* file)
 {
+    
     std::string text = get_file_contents(file);
     JSON = json::parse(text);
+
+    fileStr = std::string(file);
+    fileDirectory = fileStr.substr(0,fileStr.find_last_of('/')+1);
 
     Model::file = file;
     std::cout << "got file contents" << std::endl;
     data = getData();
     std::cout << "parsed" << std::endl;
+
+    materials = getMaterials();
+    std::cout << "textures" << std::endl;
+    textures = getTextures();
+    std::cout << "out of getTextures" << std::endl;
 
     traverseNode(0);
     std::cout << "traversed" << std::endl;
@@ -104,8 +113,15 @@ void Model::updateWorld(){
 void Model::Draw(Shader& shader, Camera& camera)
 {
     updateWorld();
+
+    shader.Activate();
+    glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+    camera.Matrix(shader, "camMatrix");
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "world"), 1, GL_FALSE, glm::value_ptr(world));
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "local"), 1, GL_FALSE, glm::value_ptr(local));
+
     for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::Draw(shader, camera, world, local, matricesMeshes[i]);
+        meshes[i].Mesh::Draw(shader, camera, textures, world, local, matricesMeshes[i]);
     }
 }
 
@@ -117,9 +133,6 @@ std::vector<unsigned char> Model::getData()
 
     std::cout << "1" << std::endl;
 
-    std::string fileStr = std::string(file);
-    std::cout << fileStr.c_str() << std::endl;
-    std::string fileDirectory = fileStr.substr(0,fileStr.find_last_of('/')+1);
     std::cout << fileDirectory.c_str() << std::endl;
     std::cout << (fileDirectory + uri).c_str() << std::endl;
     bytesText = get_file_contents((fileDirectory + uri).c_str());
@@ -239,24 +252,130 @@ std::vector<Vertex> Model::assembleVertices(
     return vertices;
 }
 
+std::vector<struct Material> Model::getMaterials()
+{
+    /* This is an example of the material json format we are dealing with...
+
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "material",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.08075229982549903,
+        "metallicRoughnessTexture": {
+          "index": 1
+        },
+        "roughnessFactor": 0.5428454602387076
+      }
+    },
+*/
+
+    std::vector<struct Material> materials;
+
+    // loop through materials in model json
+    // and save as vector of material structs
+    for (unsigned int i = 0; i < JSON["materials"].size(); i++){
+        std::string     name                = JSON["materials"][i].value("name", std::string("unnamed"));
+        bool            doubleSided         = JSON["materials"][i].value("doubleSided", true);
+
+        // pbrMetallicRoughness is optional, but almost all materials will have it,
+        // it contains the most important things, like the indexes of textures
+        bool hasPbrMetRough = JSON["materials"][i].contains("pbrMetallicRoughness");
+
+        json            pbrMetRough;
+        glm::vec4       baseColorFactor;
+        float           metallicFactor;
+        float           roughnessFactor;
+        bool            hasBaseColorTex;
+        int             baseColorTexture;
+        int             metallicRoughnessTexture;
+
+        if( hasPbrMetRough )
+        {
+            pbrMetRough = JSON["materials"][i]["pbrMetallicRoughness"];
+            if (pbrMetRough.contains("baseColorFactor")){
+                json baseColorFactorJson = pbrMetRough["baseColorFactor"];
+                if (baseColorFactorJson.size() != 4){
+                    throw std::runtime_error("Size of baseColorFactorJson != 4");
+                }
+                // not especially elegant conversion
+                baseColorFactor = glm::vec4(
+                    baseColorFactorJson.at(0),
+                    baseColorFactorJson.at(1),
+                    baseColorFactorJson.at(2),
+                    baseColorFactorJson.at(3)
+                );
+            }
+            else
+            {
+                baseColorFactor = glm::vec4(1.0f,1.0f,1.0f,1.0f);
+            }
+            std::cout << "between here" << std::endl;    
+            metallicFactor      = pbrMetRough.value("metallicFactor", 1.0f);
+            roughnessFactor     = pbrMetRough.value("roughnessFactor", 1.0f);
+
+            if (pbrMetRough.contains("baseColorTexture")){
+                baseColorTexture = pbrMetRough["baseColorTexture"]["index"];
+                hasBaseColorTex = true;
+            }else{
+                baseColorTexture = -1;
+                hasBaseColorTex = false;
+            }
+            if (pbrMetRough.contains("metallicRoughnessTexture")){
+                metallicRoughnessTexture = pbrMetRough["metallicRoughnessTexture"]["index"];
+            }else{
+                metallicRoughnessTexture = -1;
+            }
+        
+            std::cout << "and here" << std::endl;
+        }
+        else
+        {
+            baseColorFactor     = glm::vec4(1.0f,1.0f,1.0f,1.0f);
+            metallicFactor      = 1.0f;
+            roughnessFactor     = 1.0f;
+            hasBaseColorTex          = false;
+            baseColorTexture         = -1;
+            metallicRoughnessTexture = -1;
+        }
+
+        struct Material material{
+            name,               //std::string     name                = std::string("Initial string");
+            doubleSided,        //bool            doubleSided         = true;
+            baseColorFactor,    //glm::vec4       baseColorFactor     = glm::vec4(1.0f,1.0f,1.0f,1.0f);
+            metallicFactor,     //float           metallicFactor      = 1.0f;
+            roughnessFactor,    //float           roughnessFactor     = 1.0f;
+            hasBaseColorTex,            //bool            hasBaseColorTex          = false;
+            baseColorTexture,           //int             baseColorTexture         = -1;
+            metallicRoughnessTexture    //int             metallicRoughnessTexture = -1;
+        };
+
+        materials.push_back(material);
+    }
+
+    return materials;
+}
+
 std::vector<Texture> Model::getTextures()
 {
+    
     std::vector<Texture> textures;
 
-    std::string fileStr = std::string(file);
-    std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/')+1);
-    std::cout << fileDirectory.c_str() << std::endl;
+    for (unsigned int i = 0; i < JSON["textures"].size(); i++){
 
-    for (unsigned int i = 0; i < JSON["images"].size(); i++){
+        int texInd = JSON["textures"][i]["source"];
 
-        std::string texPath = JSON["images"][i]["uri"];
+        std::string texPath = JSON["images"][texInd]["uri"];
 
         bool skip = false;
         for (unsigned int j = 0; j < loadedTexName.size(); j++)
         {
             if (loadedTexName[j] == texPath)
             {
-                textures.push_back(loadedTex[j]);
+                textures.push_back(textures[j]);
                 skip = true;
                 break;
             }
@@ -264,23 +383,11 @@ std::vector<Texture> Model::getTextures()
 
         if(!skip)
         {
-
-            if (texPath.find("baseColor") != std::string::npos)
-            {
-                Texture diffuse = Texture((fileDirectory+texPath).c_str(), "diffuse", loadedTex.size());
-                textures.push_back(diffuse);
-                loadedTex.push_back(diffuse);
-                loadedTexName.push_back(texPath);
-            }
-            else if (texPath.find("metallicRoughness") != std::string::npos){
-                Texture specular = Texture((fileDirectory+texPath).c_str(), "specular", loadedTex.size());
-                textures.push_back(specular);
-                loadedTex.push_back(specular);
-                loadedTexName.push_back(texPath);
-            }
+            Texture texture = Texture((fileDirectory+texPath).c_str(), "something", i);
+            textures.push_back(texture);
+            loadedTexName.push_back(texPath);  
         }
     }
-
     return textures;
 }
 
@@ -293,6 +400,8 @@ void Model::loadMesh(unsigned int indMesh)
     unsigned int texAccInd = JSON["meshes"][indMesh]["primitives"][0]["attributes"]["TEXCOORD_0"];
     unsigned int indAccInd = JSON["meshes"][indMesh]["primitives"][0]["indices"];
 
+    unsigned int matInd = JSON["meshes"][indMesh]["primitives"][0]["material"];
+
     std::vector<float> posVec = getFloats(JSON["accessors"][posAccInd]);
     std::vector<glm::vec3> positions = groupFloatsVec3(posVec);
 
@@ -302,16 +411,12 @@ void Model::loadMesh(unsigned int indMesh)
     std::vector<float> texVec = getFloats(JSON["accessors"][texAccInd]);
     std::vector<glm::vec2> texUVs = groupFloatsVec2(texVec);
 
-    std::cout << "vert part.." << std::endl;
     std::vector<Vertex> vertices = assembleVertices(positions, normals, texUVs);
-    std::cout << "ind part.." << std::endl;
     std::vector<GLuint> indices = getIndices(JSON["accessors"][indAccInd]);
-    std::cout << "mesh part.." << std::endl;
-    std::vector<Texture> textures = getTextures();
 
-    std::cout << "mesh part.." << std::endl;
+    struct Material material = materials[matInd];
 
-    meshes.push_back(Mesh(vertices, indices, textures));
+    meshes.push_back(Mesh(vertices, indices, material));
 }
 
 void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){

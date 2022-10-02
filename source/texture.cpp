@@ -1,8 +1,8 @@
 #include"../headers/texture.h"
 
+//texType may be pointless
 Texture::Texture(const char* image, const char* texType, GLuint slot)
 {
-    imageName = std::string(image);
 	// Assigns the type of the texture to the texture object
 	type = texType;
 
@@ -85,7 +85,7 @@ Texture::Texture(const char* image, const char* texType, GLuint slot)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)
+void Texture::texUnit(Shader& shader, const char* uniform)
 {
 	// Gets the location of the uniform
 	GLuint texUni = glGetUniformLocation(shader.ID, uniform);

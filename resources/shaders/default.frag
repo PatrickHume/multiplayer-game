@@ -6,12 +6,22 @@ in vec3 norm;
 in vec3 color;
 in vec2 texCoord;
 
-uniform sampler2D diffuse0;
-uniform sampler2D specular0;
+uniform sampler2D diffuseTex;
+uniform sampler2D specularTex;
 uniform vec4 lightColor;
 uniform vec3 lightPos;
 uniform vec3 camPos;
 
+//uniform bool   hasBaseColorTex;
+
+uniform bool   doubleSided;
+uniform vec4   baseColorFactor;
+uniform float  metallicFactor;
+uniform float  roughnessFactor;
+uniform int    baseColorTexture;
+uniform int    metallicRoughnessTexture;
+
+/*
 vec4 pointLight()
 {
    vec3 lightVec = lightPos - crntPos;
@@ -32,29 +42,15 @@ vec4 pointLight()
    float specAmount = pow(max(dot(viewDirection, reflectionDirection),0.0f), 16.0f);
    float specular = specAmount * specularLight;
 
-   return (texture(diffuse0, texCoord) * (diffuse * inten + ambient) + texture(specular0, texCoord).r * specular * inten) * lightColor;
+   return (texture(diffuse, texCoord) * (diffuse * inten + ambient) + texture(specular, texCoord).r * specular * inten) * lightColor;
 }
-
+*/
+/*
 vec4 direcLight()
 {
-	// ambient lighting
-	float ambient = 0.20f;
-
-	// diffuse lighting
-	vec3 normal = normalize(norm);
-	vec3 lightDirection = normalize(vec3(1.0f, 1.0f, 0.0f));
-	float diffuse = max(dot(normal, lightDirection), 0.0f);
-
-	// specular lighting
-	float specularLight = 0.50f;
-	vec3 viewDirection = normalize(camPos - crntPos);
-	vec3 reflectionDirection = reflect(-lightDirection, normal);
-	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
-	float specular = specAmount * specularLight;
-
-	return (texture(diffuse0, texCoord) * (diffuse + ambient) + texture(specular0, texCoord).r * specular) * lightColor;
 }
-
+*/
+/*
 vec4 spotLight()
 {
 	// controls how big the area that is lit up is
@@ -80,10 +76,38 @@ vec4 spotLight()
 	float angle = dot(vec3(0.0f, -1.0f, 0.0f), -lightDirection);
 	float inten = clamp((angle - outerCone) / (innerCone - outerCone), 0.0f, 1.0f);
 
-	return (texture(diffuse0, texCoord) * (diffuse * inten + ambient) + texture(specular0, texCoord).r * specular * inten) * lightColor;
-}
+	return (texture(diffuse, texCoord) * (diffuse * inten + ambient) + texture(specular, texCoord).r * specular * inten) * lightColor;
+}*/
 
 void main()
 {
-   FragColor = direcLight();
+
+   //doubleSided;
+   //baseColorFactor;
+   //metallicFactor;
+   //roughnessFactor;
+
+   // ambient lighting
+	float ambient = 0.20f;
+
+	// diffuse lighting
+	vec3 normal = normalize(norm);
+	vec3 lightDirection = normalize(vec3(1.0f, 1.0f, 0.0f));
+	float diffuse = max(dot(normal, lightDirection), 0.0f);
+
+	// specular lighting
+	float specularLight = 0.50f;
+	vec3 viewDirection = normalize(camPos - crntPos);
+	vec3 reflectionDirection = reflect(-lightDirection, normal);
+	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
+	float specular = specAmount * specularLight;
+
+   //if (1)
+   //{
+      FragColor = (texture(diffuseTex, texCoord) * (diffuse + ambient) + texture(specularTex, texCoord).r * specular) * lightColor;
+   //}
+   //else
+   //{
+   //   FragColor = (baseColorFactor * (diffuse + ambient) + texture(specularTex, texCoord).r * specular) * lightColor
+   //}
 }

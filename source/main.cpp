@@ -54,26 +54,29 @@ int main()
 	glfwMakeContextCurrent(window);
 
     // Generates Shader object using shaders defualt.vert and default.frag
-    Shader shaderProgram("resources/shaders/default.vert","resources/shaders/default.frag");
+    Shader ladaShader("resources/shaders/default.vert","resources/shaders/default.frag");
+    Shader migShader("resources/shaders/default.vert","resources/shaders/default.frag");
+    
+    // We can reuse these models many times per frame
 
-    Model model("resources/models/lada/scene.gltf");
-    model.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
-    model.setModelOrientation(glm::vec3(1.0f,0.0f,1.0f));
-    model.updateLocal();
+    Model ladaModel("resources/models/lada/scene.gltf");
+    ladaModel.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
+    ladaModel.setModelOrientation(glm::vec3(1.0f,0.0f,1.0f));
+    ladaModel.updateLocal();
 
-    Model otherModel("resources/models/mig-21/scene.gltf");
-    otherModel.setModelScale(glm::vec3(20.0f,20.0f,20.0f));
-    otherModel.setModelPosition(glm::vec3(10.0f,0.0f,0.0f));
-    otherModel.updateLocal();
+    Model migModel("resources/models/mig-21/scene.gltf");
+    migModel.setModelScale(glm::vec3(20.0f,20.0f,20.0f));
+    migModel.setModelPosition(glm::vec3(10.0f,0.0f,0.0f));
+    migModel.updateLocal();
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
 
-	shaderProgram.Activate();
-	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	ladaShader.Activate();
+	glUniform4f(glGetUniformLocation(ladaShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(ladaShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -99,8 +102,8 @@ int main()
         camera.Inputs(window);
         camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
-        model.Draw(shaderProgram, camera);
-        otherModel.Draw(shaderProgram, camera);
+        ladaModel.Draw(ladaShader, camera);
+        migModel.Draw(ladaShader, camera);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
@@ -111,7 +114,7 @@ int main()
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
 	// Delete all the objects we've created
-	shaderProgram.Delete();
+	ladaShader.Delete();
     	// Delete window before ending the program
 	glfwDestroyWindow(window);
     // glfw: terminate, clearing all previously allocated GLFW resources.

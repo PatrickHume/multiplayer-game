@@ -16,6 +16,7 @@ uniform mat4 model;
 
 void main()
 {
+    // need to add world to this too
     crntPos = vec3(local * model * vec4(aPos, 1.0));
     norm = aNormal;
     color = aColor;

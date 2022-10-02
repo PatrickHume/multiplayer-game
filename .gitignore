@@ -45,3 +45,4 @@ commitlint.config.js
 *.gltf
 
 models
+tests
