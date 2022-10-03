@@ -45,17 +45,17 @@ void Mesh::Draw(
     // only need to bind the diffuse and specular textures.
     // these are indexed by material.baseColorTexture and material.metallicRoughnessTexture.
     // if either are equal to -1, apply no texture
-    if(material.hasBaseColorTex)
-    {
-        textures[material.baseColorTexture].texUnit(shader, "diffuseTex");
-        textures[material.metallicRoughnessTexture].texUnit(shader, "specularTex");
+    //if(material.hasBaseColorTex)
+    //{
+    textures[material.baseColorTexture].Bind();
+    textures[material.metallicRoughnessTexture].Bind();
 
-        textures[material.baseColorTexture].Bind();
-        textures[material.metallicRoughnessTexture].Bind();
-    }else{
-        textures[material.baseColorTexture].Unbind();
-        textures[material.metallicRoughnessTexture].Unbind();        
-    }
+    textures[material.baseColorTexture].texUnit(shader, "diffuseTex");
+    textures[material.metallicRoughnessTexture].texUnit(shader, "specularTex");
+    //}else{
+    //    textures[material.baseColorTexture].Unbind();
+    //    textures[material.metallicRoughnessTexture].Unbind();        
+    //}
 
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
 

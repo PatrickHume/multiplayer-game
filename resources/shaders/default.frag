@@ -104,7 +104,7 @@ void main()
 
    //if (1)
    //{
-      FragColor = (texture(diffuseTex, texCoord) * (diffuse + ambient) + texture(specularTex, texCoord).r * specular) * lightColor;
+   FragColor = (texture(diffuseTex, texCoord) * (diffuse + ambient) + texture(specularTex, texCoord).r * specular) * lightColor;
    //}
    //else
    //{

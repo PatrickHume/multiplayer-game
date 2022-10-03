@@ -3,6 +3,7 @@
 
 Model::Model(const char* file)
 {
+    setOrientation(glm::vec3(1.0f, 0.0f, 0.0f));
     
     std::string text = get_file_contents(file);
     JSON = json::parse(text);
@@ -35,7 +36,7 @@ void Model::applyTranslation(glm::vec3 position)
 // apply rotation around axis by some radians
 void Model::applyRotation(glm::vec3 axisOrientation, float angle)
 {
-    Model::quaternion = glm::rotate(quaternion, angle, axisOrientation);
+    Model::quaternion = glm::rotate(quaternion, angle, glm::normalize(axisOrientation));
 }
 // apply a scale to squash or strech the model
 void Model::applyScale(glm::vec3 scale)
@@ -113,6 +114,8 @@ void Model::updateWorld(){
 void Model::Draw(Shader& shader, Camera& camera)
 {
     updateWorld();
+
+    
 
     shader.Activate();
     glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);

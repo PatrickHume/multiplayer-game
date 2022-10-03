@@ -55,19 +55,19 @@ int main()
 
     // Generates Shader object using shaders defualt.vert and default.frag
     Shader ladaShader("resources/shaders/default.vert","resources/shaders/default.frag");
-    Shader migShader("resources/shaders/default.vert","resources/shaders/default.frag");
+    Shader f15Shader("resources/shaders/default.vert","resources/shaders/default.frag");
     
     // We can reuse these models many times per frame
 
     Model ladaModel("resources/models/lada/scene.gltf");
     ladaModel.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
     ladaModel.setModelOrientation(glm::vec3(1.0f,0.0f,1.0f));
+    ladaModel.setModelPosition(glm::vec3(20.0f,0.0f,0.0f));
     ladaModel.updateLocal();
 
-    Model migModel("resources/models/mig-21/scene.gltf");
-    migModel.setModelScale(glm::vec3(20.0f,20.0f,20.0f));
-    migModel.setModelPosition(glm::vec3(10.0f,0.0f,0.0f));
-    migModel.updateLocal();
+    Model f15Model("resources/models/f-4/scene.gltf");
+    f15Model.setModelScale(glm::vec3(0.3f,0.3f,0.3f));
+    f15Model.updateLocal();
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -93,6 +93,8 @@ int main()
         // -----
         processInput(window);
 
+        ladaModel.applyRotation(glm::vec3(0.5f,0.1f,0.0f),0.01f);
+
         // render
         // ------
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -100,10 +102,10 @@ int main()
 		// Tell OpenGL which Shader Program we want to use
         
         camera.Inputs(window);
-        camera.updateMatrix(45.0f, 0.1f, 100.0f);
+        camera.updateMatrix(45.0f, 0.1f, 10000.0f);
 
         ladaModel.Draw(ladaShader, camera);
-        migModel.Draw(ladaShader, camera);
+        f15Model.Draw(ladaShader, camera);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
