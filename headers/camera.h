@@ -12,6 +12,12 @@
 
 #include"shader.h"
 
+enum DrawType {
+    DRAW_REGULAR,
+    DRAW_OUTLINE,
+    DRAW_PREPARE_OUTLINE
+};
+
 class Camera
 {
 public:

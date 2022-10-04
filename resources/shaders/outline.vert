@@ -13,6 +13,7 @@ uniform mat4 camMatrix;
 uniform mat4 world;
 uniform mat4 local;
 uniform mat4 model;
+uniform float outlineThickness;
 
 uniform mat4 worldRotation;
 uniform mat4 localRotation;
@@ -25,5 +26,5 @@ void main()
     color = aColor;
     texCoord = mat2(1.0, 0.0, 0.0, -1.0) * aTex;
 
-    gl_Position = camMatrix * vec4(crntPos, 1.0);
+    gl_Position = camMatrix * vec4(crntPos + (norm*outlineThickness), 1.0);
 }

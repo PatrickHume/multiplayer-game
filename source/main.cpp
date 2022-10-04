@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include"../headers/object.h"
+#include"../headers/user.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -62,9 +62,12 @@ int main()
 	// Introduce the window into the current context
 	glfwMakeContextCurrent(window);
 
+    User user;
+
     // Generates Shader object using shaders defualt.vert and default.frag
-    Shader ladaShader("resources/shaders/default.vert","resources/shaders/default.frag");
-    Shader f15Shader("resources/shaders/default.vert","resources/shaders/default.frag");
+    Shader defaultShader("resources/shaders/default.vert","resources/shaders/default.frag");
+    // This shader is used to highlight selected objects with an outline
+    Shader outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag");
     
     // We can reuse these models many times per frame
 
@@ -74,28 +77,33 @@ int main()
     //ladaModel.setModelPosition(glm::vec3(20.0f,0.0f,0.0f));
     ladaModel.updateLocal();
 
-    Model f15Model = Model("resources/models/f-4/scene.gltf");
-    f15Model.setModelScale(glm::vec3(0.3f,0.3f,0.3f));
-    f15Model.updateLocal();
+    //Model f15Model = Model("resources/models/f-4/scene.gltf");
+    //f15Model.setModelScale(glm::vec3(0.3f,0.3f,0.3f));
+    //f15Model.updateLocal();
 
     Model cubeModel = Model("resources/models/cube/scene.gltf");
 
-    Object lada(physicsWorld, &ladaModel, rp3d::BodyType::KINEMATIC);
+    Object lada(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC);
     Object cube(physicsWorld, &cubeModel, rp3d::BodyType::STATIC);
+
+    user.selectObject(&cube);
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
 
-	ladaShader.Activate();
-	glUniform4f(glGetUniformLocation(ladaShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(ladaShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	defaultShader.Activate();
+	glUniform4f(glGetUniformLocation(defaultShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(defaultShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
+    // when both depth and stencil tests pass we use the reference value later
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 10.0f));
 
@@ -149,15 +157,17 @@ int main()
         // render
         // ------
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		// Tell OpenGL which Shader Program we want to use
         
         camera.Inputs(window);
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
 
-        lada.Draw(ladaShader, camera);
-        cube.Draw(ladaShader, camera);
+        lada.Draw(defaultShader, camera);
+        cube.Draw(defaultShader, camera);
 
+        user.drawSelected(outlineShader, camera);
+        
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
@@ -167,7 +177,7 @@ int main()
     // Destroy the physics world 
     physicsCommon.destroyPhysicsWorld(physicsWorld);
 	// Delete all the objects we've created
-	ladaShader.Delete();
+	defaultShader.Delete();
     	// Delete window before ending the program
 	glfwDestroyWindow(window);
     // glfw: terminate, clearing all previously allocated GLFW resources.

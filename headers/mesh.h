@@ -3,6 +3,7 @@
 
 #include<string>
 
+#include<glm/gtx/matrix_decompose.hpp>
 #include"VAO.h"
 #include"EBO.h"
 #include"camera.h"
@@ -16,22 +17,35 @@ class Mesh
         std::vector <GLuint> indices;
         std::vector <Texture> textures;
         struct Material material;
+        
+        glm::mat4 matrix;
+
+        glm::vec3 scale;
+        glm::mat4 rotation;
+        glm::vec3 translation;
+        glm::vec3 skew;
+        glm::vec4 perspective;
+
+        glm::quat quaternion;
 
         VAO VAO;
 
         Mesh(
             std::vector <Vertex>& vertices, 
             std::vector <GLuint>& indices, 
-            struct Material& material);
+            struct Material& material,
+            glm::mat4 matrix);
 
         void Draw(
             Shader& shader, 
             Camera& camera,
-            std::vector<Texture>& textures,
-            glm::mat4 world = glm::mat4(1.0f),
-            glm::mat4 local = glm::mat4(1.0f),
-            glm::mat4 matrix = glm::mat4(1.0f)
+            std::vector<Texture>& textures
             );
+
+        void drawOutline(
+            Shader& outlineShader, 
+            Camera& camera,
+            std::vector<Texture>& textures);
 };
 
 #endif

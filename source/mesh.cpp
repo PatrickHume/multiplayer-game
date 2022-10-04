@@ -3,11 +3,17 @@
 Mesh::Mesh(
     std::vector <Vertex>& vertices, 
     std::vector <GLuint>& indices,  
-    struct Material& material)
+    struct Material& material,
+    glm::mat4 matrix)
 {
     Mesh::vertices = vertices;
     Mesh::indices = indices;
     Mesh::material = material;
+
+    Mesh::matrix = matrix;
+
+    glm::decompose(Mesh::matrix, Mesh::scale, Mesh::quaternion, Mesh::translation, Mesh::skew, Mesh::perspective);
+    Mesh::rotation=glm::toMat4(glm::normalize(glm::conjugate(Mesh::quaternion)));
 
     // Generates Vertex Array Object and binds it
 	VAO.Bind();
@@ -33,12 +39,8 @@ Mesh::Mesh(
 void Mesh::Draw(
     Shader& shader, 
     Camera& camera,
-    std::vector<Texture>& textures,
-    glm::mat4 world,
-    glm::mat4 local,
-    glm::mat4 matrix)
+    std::vector<Texture>& textures)
 {
-
     shader.Activate();
     VAO.Bind();
 
@@ -58,7 +60,7 @@ void Mesh::Draw(
     //}
 
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
-
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "modelRotation"), 1, GL_FALSE, glm::value_ptr(rotation));
     // all the material attributes must be sent to the shader
     //glUniform1i(glGetUniformLocation(shader.ID, "hasBaseColorTex"), material.hasBaseColorTex);
     glUniform1i(glGetUniformLocation(shader.ID, "doubleSided"),     material.doubleSided);
@@ -66,5 +68,20 @@ void Mesh::Draw(
     glUniform1f(glGetUniformLocation(shader.ID, "metallicFactor"),  material.metallicFactor);
     glUniform1f(glGetUniformLocation(shader.ID, "roughnessFactor"), material.roughnessFactor);
 
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+}
+
+void Mesh::drawOutline(
+    Shader& outlineShader, 
+    Camera& camera,
+    std::vector<Texture>& textures
+){
+    outlineShader.Activate();
+    VAO.Bind();
+    // this could be in next class up...
+    glUniform1f(glGetUniformLocation(outlineShader.ID, "outlineThickness"), 0.05f);
+    
+    glUniformMatrix4fv(glGetUniformLocation(outlineShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(glGetUniformLocation(outlineShader.ID, "modelRotation"), 1, GL_FALSE, glm::value_ptr(rotation));
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }

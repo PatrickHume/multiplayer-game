@@ -1,10 +1,7 @@
 #include"../headers/model.h"
 
-
 Model::Model(const char* file)
-{
-    setOrientation(glm::vec3(1.0f, 0.0f, 0.0f));
-    
+{   
     std::string text = get_file_contents(file);
     JSON = json::parse(text);
 
@@ -115,11 +112,10 @@ void Model::updateWorld(){
     world = trans * rot * sca;
 }
 
-void Model::Draw(Shader& shader, Camera& camera)
+void Model::Draw(Shader& shader, Camera& camera, DrawType drawType)
 {
+    // too ambiguous, change to world = combineTransform
     updateWorld();
-
-    
 
     shader.Activate();
     glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
@@ -127,8 +123,42 @@ void Model::Draw(Shader& shader, Camera& camera)
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "world"), 1, GL_FALSE, glm::value_ptr(world));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "local"), 1, GL_FALSE, glm::value_ptr(local));
 
-    for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::Draw(shader, camera, textures, world, local, matricesMeshes[i]);
+    // we want only the rotation component for rotating the normals in the shader
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "worldRotation"), 1, GL_FALSE, glm::value_ptr(glm::toMat4(quaternion)));
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "localRotation"), 1, GL_FALSE, glm::value_ptr(glm::toMat4(modelQuaternion)));
+
+    switch(drawType){
+    // draws the model mesh by mesh.
+    case DRAW_REGULAR:
+        for (unsigned int i = 0; i < meshes.size(); i++){
+            meshes[i].Mesh::Draw(shader, camera, textures);
+        }
+        break;
+    //  draws the model and prepares the stencil to draw an outline later.
+    case DRAW_PREPARE_OUTLINE:
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+        for (unsigned int i = 0; i < meshes.size(); i++){
+            meshes[i].Mesh::Draw(shader, camera, textures);
+        }
+        glStencilMask(0x00);
+        break;
+    // this is a special draw case where the object is outlined
+    // currently at the cost of redrawing the object
+    case DRAW_OUTLINE:
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);   
+        //glDisable(GL_DEPTH_TEST);      
+        for (unsigned int i = 0; i < meshes.size(); i++){
+            meshes[i].Mesh::drawOutline(shader, camera, textures);
+        }
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        //glEnable(GL_DEPTH_TEST);
+        break;
+
+    default:
+        throw std::runtime_error("Object DrawType invalid.");
+        break;
     }
 }
 
@@ -250,7 +280,7 @@ std::vector<Vertex> Model::assembleVertices(
         vertices.push_back(
             Vertex{
                 positions[i],
-                normals[i],
+                glm::normalize(normals[i]),
                 glm::vec3(1.0f,1.0f,1.0f),
                 texUVs[i]
             }
@@ -398,7 +428,7 @@ std::vector<Texture> Model::getTextures()
     return textures;
 }
 
-void Model::loadMesh(unsigned int indMesh)
+void Model::loadMesh(unsigned int indMesh, glm::mat4 matrix)
 {
     std::cout << "loadMesh" << indMesh << std::endl;
 
@@ -414,6 +444,9 @@ void Model::loadMesh(unsigned int indMesh)
 
     std::vector<float> normalVec = getFloats(JSON["accessors"][normalAccInd]);
     std::vector<glm::vec3> normals = groupFloatsVec3(normalVec);
+    //for (int i = 0; i < normals.size(); i++){
+    //    normals[i] = glm::normalize(normals[i]);
+    //}
 
     std::vector<float> texVec = getFloats(JSON["accessors"][texAccInd]);
     std::vector<glm::vec2> texUVs = groupFloatsVec2(texVec);
@@ -423,7 +456,7 @@ void Model::loadMesh(unsigned int indMesh)
 
     struct Material material = materials[matInd];
 
-    meshes.push_back(Mesh(vertices, indices, material));
+    meshes.push_back(Mesh(vertices, indices, material, matrix));
 }
 
 void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
@@ -491,12 +524,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 
 	if (node.find("mesh") != node.end())
 	{
-        translationsMeshes.push_back(translation);
-        rotationsMeshes.push_back(rotation);
-        scalesMeshes.push_back(scale);
-        matricesMeshes.push_back(matNextNode);
-
-        loadMesh(node["mesh"]);
+        loadMesh(node["mesh"], matrix);
     }
 
     std::cout << "children" << std::endl;

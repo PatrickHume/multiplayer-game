@@ -14,7 +14,7 @@ Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bo
     body->setType(bodyType);
 }
 
-void Object::Draw(Shader& shader, Camera& camera){
+void Object::Draw(Shader& shader, Camera& camera, DrawType drawType){
     rp3d::Transform transform   = body->getTransform();
     rp3d::Vector3       pos     = transform.getPosition();
     rp3d::Quaternion    ori     = transform.getOrientation();
@@ -28,6 +28,12 @@ void Object::Draw(Shader& shader, Camera& camera){
 
     model->setPosition(position);
     model->setQuaternion(quaternion);
-    
-    model->Draw(shader, camera);
+
+    // if the model is selected, prepare the stencil buffer
+    // for any draw calls with DRAW_OUTLINE
+    if (drawType == DRAW_REGULAR && isSelected){
+        drawType = DRAW_PREPARE_OUTLINE;
+    }
+
+    model->Draw(shader, camera, drawType);
 }

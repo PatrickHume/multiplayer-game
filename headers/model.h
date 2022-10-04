@@ -13,7 +13,7 @@ class Model
 public:
     Model(const char* file);
 
-    void Draw(Shader& shader, Camera& camera);
+    void Draw(Shader& shader, Camera& camera, DrawType type = DRAW_REGULAR);
     void applyMatrix(glm::mat4 matrixMesh);
 
     void applyTranslation(glm::vec3 position);
@@ -51,16 +51,16 @@ private:
     std::vector<std::string> loadedTexName;
     std::vector<Texture> textures;
 
-    void loadMesh(unsigned int indMesh);
+    void loadMesh(unsigned int indMesh, glm::mat4 matrix);
 
     void traverseNode(unsigned int nextNode, glm::mat4 matrix = glm::mat4(1.0f));
 
-    glm::vec3 position;    
-    glm::quat quaternion;
+    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);   
+    glm::quat quaternion = glm::mat4(1.0f);
     glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);       
 
-    glm::vec3 modelPosition;
-    glm::quat modelQuaternion;
+    glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::quat modelQuaternion = glm::mat4(1.0f);
     glm::vec3 modelScale = glm::vec3(1.0f, 1.0f, 1.0f);
 
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -71,11 +71,6 @@ private:
     // world is a combination of position, scale and quaternion.
     // this will change throughout runtime - using quaternions prevents us from gimbal lock.
     glm::mat4 world = glm::mat4(1.0f);
-
-    std::vector<glm::vec3> translationsMeshes;
-    std::vector<glm::quat> rotationsMeshes;
-    std::vector<glm::vec3> scalesMeshes;
-    std::vector<glm::mat4> matricesMeshes;
 
     std::vector<unsigned char> getData();
     std::vector<float> getFloats(json accessor);

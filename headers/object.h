@@ -9,8 +9,10 @@
 class Object
 {
     public:
+        bool isSelected = false;
+
         Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType);
-        void Draw(Shader& shader, Camera& camera);
+        void Draw(Shader& shader, Camera& camera, DrawType type = DRAW_REGULAR);
     private:
         static int nextId;
         int id;
