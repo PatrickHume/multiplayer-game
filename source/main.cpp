@@ -78,7 +78,10 @@ int main()
     f15Model.setModelScale(glm::vec3(0.3f,0.3f,0.3f));
     f15Model.updateLocal();
 
-    Object lada(physicsWorld, &ladaModel);
+    Model cubeModel = Model("resources/models/cube/scene.gltf");
+
+    Object lada(physicsWorld, &ladaModel, rp3d::BodyType::KINEMATIC);
+    Object cube(physicsWorld, &cubeModel, rp3d::BodyType::STATIC);
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -153,6 +156,7 @@ int main()
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
 
         lada.Draw(ladaShader, camera);
+        cube.Draw(ladaShader, camera);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);

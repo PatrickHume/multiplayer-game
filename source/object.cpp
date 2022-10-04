@@ -1,7 +1,7 @@
 #include"../headers/object.h"
 int Object::nextId = 0;
 
-Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model){
+Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType){
     id = nextId++;
     Object::model = model;
 
@@ -10,9 +10,8 @@ Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model){
     rp3d::Quaternion    orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform     transform(position, orientation);
     // create a rigidbody at (0,0,0)
-    Object::body = physicsWorld->createRigidBody(transform);
-
-    
+    body = physicsWorld->createRigidBody(transform);
+    body->setType(bodyType);
 }
 
 void Object::Draw(Shader& shader, Camera& camera){
