@@ -24,9 +24,12 @@ int main()
     // world and other objects. It is also responsible for 
     // logging and memory management 
     rp3d::PhysicsCommon physicsCommon; 
- 
+
+    rp3d::PhysicsWorld::WorldSettings settings; 
+    settings.gravity = rp3d::Vector3(0, 0, 0); 
+
     // Create a physics world 
-    rp3d::PhysicsWorld* physicsWorld = physicsCommon.createPhysicsWorld(); 
+    rp3d::PhysicsWorld* physicsWorld = physicsCommon.createPhysicsWorld(settings); 
 
     // glfw: initialize and configure
     // ------------------------------
@@ -73,9 +76,10 @@ int main()
 
     Model ladaModel = Model("resources/models/lada/scene.gltf");
     ladaModel.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
+    ladaModel.updateLocal();
+
     //ladaModel.setModelOrientation(glm::vec3(1.0f,0.0f,1.0f));
     //ladaModel.setModelPosition(glm::vec3(20.0f,0.0f,0.0f));
-    ladaModel.updateLocal();
 
     //Model f15Model = Model("resources/models/f-4/scene.gltf");
     //f15Model.setModelScale(glm::vec3(0.3f,0.3f,0.3f));
@@ -85,6 +89,13 @@ int main()
 
     Object lada(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC);
     Object cube(physicsWorld, &cubeModel, rp3d::BodyType::STATIC);
+
+    // Force vector (in Newton) 
+    rp3d::Vector3 force(2.0, 0.0, 0.0); 
+    // Point where the force is applied 
+    rp3d::Vector3 point(4.0, 5.0, 6.0); 
+    // Apply a force to the body 
+    lada.body->applyLocalForceAtLocalPosition(force, point);
 
     user.selectObject(&lada);
 

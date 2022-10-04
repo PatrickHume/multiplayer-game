@@ -10,6 +10,7 @@ class Object
 {
     public:
         bool isSelected = false;
+        rp3d::RigidBody* body;
 
         Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType);
         void Draw(Shader& shader, Camera& camera, DrawType type = DRAW_REGULAR);
@@ -18,7 +19,6 @@ class Object
         int id;
 
         rp3d::PhysicsWorld* physicsWorld;
-        rp3d::RigidBody*    body;
         Model* model;
 };
 
