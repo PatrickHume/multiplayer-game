@@ -51,6 +51,10 @@ void Model::setPosition(glm::vec3 position)
 {
     Model::position = position;
 }
+void Model::setQuaternion(glm::quat quaternion)
+{
+    Model::quaternion = quaternion;
+}
 void Model::setOrientation(glm::vec3 orientation, glm::vec3 up)
 {
     //orientation = glm::normalize(orientation);

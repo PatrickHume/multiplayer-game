@@ -3,7 +3,7 @@
 
 #include<json/json.h>
 #include"mesh.h"
-#include"shaderClass.h"
+#include"shader.h"
 #include"texture.h"
 
 using json = nlohmann::json;
@@ -21,9 +21,11 @@ public:
     void applyScale(glm::vec3 scale);
 
     void setPosition(glm::vec3 position);
+    void setQuaternion(glm::quat quaternion);
     void setOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
     void setScale(glm::vec3 scale);
 
+    // these are used to correct for the model we imported
     void setModelPosition(glm::vec3 position);
     void setModelOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
     void setModelScale(glm::vec3 scale);
