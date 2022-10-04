@@ -86,7 +86,7 @@ int main()
     Object lada(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC);
     Object cube(physicsWorld, &cubeModel, rp3d::BodyType::STATIC);
 
-    user.selectObject(&cube);
+    user.selectObject(&lada);
 
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);

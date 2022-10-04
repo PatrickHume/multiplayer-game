@@ -26,7 +26,8 @@ public:
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 cameraMatrix = glm::mat4(1.0f);
 
-    bool firstClick = true;
+    bool mouseMovesCamera = false;
+    bool mousePressed = false;
 
     int width;
     int height;
