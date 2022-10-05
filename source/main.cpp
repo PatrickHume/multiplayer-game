@@ -9,6 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include"../headers/user.h"
+#include"../headers/textRenderer.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -66,12 +67,16 @@ int main()
 	glfwMakeContextCurrent(window);
 
     User user;
+    TextRenderer textRenderer;
 
     // Generates Shader object using shaders defualt.vert and default.frag
     Shader defaultShader("resources/shaders/default.vert","resources/shaders/default.frag");
     // This shader is used to highlight selected objects with an outline
     Shader outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag");
-    
+    Shader textShader("resources/shaders/text.vert","resources/shaders/text.frag");
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+    textShader.Activate();
+    glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     // We can reuse these models many times per frame
 
     Model ladaModel = Model("resources/models/lada/scene.gltf");
@@ -179,6 +184,8 @@ int main()
 
         user.drawSelected(outlineShader, camera);
         
+        textRenderer.renderText(textShader, "This is some sample text", 25.0f, 25.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f));
+      
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
