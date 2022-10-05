@@ -10,13 +10,15 @@
 
 #include"../headers/user.h"
 #include"../headers/textRenderer.h"
+#include"../headers/stringSwitch.h"
+#include"../headers/interface.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow *window, Interface &interface, Camera &camera);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int width = 800;
+const unsigned int height = 600;
 
 int main()
 {
@@ -45,7 +47,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -68,13 +70,14 @@ int main()
 
     User user;
     TextRenderer textRenderer;
+    Interface interface(width, height);
 
     // Generates Shader object using shaders defualt.vert and default.frag
     Shader defaultShader("resources/shaders/default.vert","resources/shaders/default.frag");
     // This shader is used to highlight selected objects with an outline
     Shader outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag");
     Shader textShader("resources/shaders/text.vert","resources/shaders/text.frag");
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
     textShader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     // We can reuse these models many times per frame
@@ -121,7 +124,7 @@ int main()
     // when both depth and stencil tests pass we use the reference value later
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-    Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 10.0f));
+    Camera camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f));
 
     // length of physics frame in seconds
     const rp3d::decimal timeStep = 1.0f / 60.0f;
@@ -166,8 +169,8 @@ int main()
         
         // input
         // -----
-        processInput(window);
-
+        processInput(window, interface, camera);
+        
         //ladaModel.applyRotation(glm::vec3(0.5f,0.1f,0.0f),0.01f);
 
         // render
@@ -176,15 +179,16 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		// Tell OpenGL which Shader Program we want to use
         
-        camera.Inputs(window);
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
 
         lada.Draw(defaultShader, camera);
         cube.Draw(defaultShader, camera);
 
         user.drawSelected(outlineShader, camera);
-        
-        textRenderer.renderText(textShader, "This is some sample text", 25.0f, 25.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+        interface.Draw(textRenderer, textShader, currentTime);
+
+        //textRenderer.renderText(textShader, "This is some sample text", 25.0f, 25.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f));
       
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
@@ -204,12 +208,76 @@ int main()
     return 0;
 }
 
+bool keyIsHeld[260];
+
+bool firstPress(GLFWwindow *window, int key){
+    if (key >= 260){
+        std::cout << (char)key << std::endl;
+        throw std::runtime_error("Key checked not in range. (key code is > 96)");
+    }
+
+    if (glfwGetKey(window, key) == GLFW_PRESS){
+        if(!keyIsHeld[key]){
+            keyIsHeld[key] = true;
+            return true;
+        }
+    }else{
+        keyIsHeld[key] = false;
+    }
+    return false;
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow *window, Interface &interface, Camera &camera)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (firstPress(window, GLFW_KEY_GRAVE_ACCENT) && camera.focus)
+    {
+        glfwSetCursorPos(window, (width / 2), (height / 2));
+        interface.toggleCmdLine();
+        camera.locked = interface.cmdLineOpen;
+    }
+
+    if (firstPress(window, GLFW_KEY_ENTER) && interface.checkCmd())
+    {
+        std::vector<CmdWord> cmdWords = interface.getCmd(); // set interface.commandSent = false;
+        switch (cmdWords[0]){
+            case CmdWord::SUMMON: 
+                std::cout << "summon" << std::endl;
+                break;
+            case CmdWord::SHOW: 
+                std::cout << "show" << std::endl;
+                break;
+            case CmdWord::ADD: 
+                std::cout << "add" << std::endl;
+                break;
+            case CmdWord::REMOVE: 
+                std::cout << "remove" << std::endl;
+                break;
+            case CmdWord::END: 
+                std::cout << "end" << std::endl;
+                break;
+        }
+    }
+
+    if(interface.cmdLineOpen && camera.focus){
+        for(int key = 44; key <= 93; key++){
+            if (firstPress(window, key)){
+                interface.typeChar(glfwGetKeyName(key, 0)[0]);
+            }
+        }
+        if (firstPress(window, GLFW_KEY_SPACE)){
+            interface.typeChar(' ');
+        }
+        if (firstPress(window, GLFW_KEY_BACKSPACE)){
+            interface.backspace();
+        }
+    }
+
+    camera.Inputs(window);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
