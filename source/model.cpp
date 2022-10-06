@@ -129,13 +129,13 @@ void Model::Draw(Shader& shader, Camera& camera, DrawType drawType)
 
     switch(drawType){
     // draws the model mesh by mesh.
-    case DRAW_REGULAR:
+    case DrawType::REGULAR:
         for (unsigned int i = 0; i < meshes.size(); i++){
             meshes[i].Mesh::Draw(shader, camera, textures);
         }
         break;
     //  draws the model and prepares the stencil to draw an outline later.
-    case DRAW_PREPARE_OUTLINE:
+    case DrawType::PREPARE_OUTLINE:
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
         for (unsigned int i = 0; i < meshes.size(); i++){
@@ -145,7 +145,7 @@ void Model::Draw(Shader& shader, Camera& camera, DrawType drawType)
         break;
     // this is a special draw case where the object is outlined
     // currently at the cost of redrawing the object
-    case DRAW_OUTLINE:
+    case DrawType::OUTLINE:
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);   
         //glDisable(GL_DEPTH_TEST);      
         for (unsigned int i = 0; i < meshes.size(); i++){

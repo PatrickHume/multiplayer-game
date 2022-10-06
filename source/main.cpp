@@ -243,24 +243,49 @@ void processInput(GLFWwindow *window, Interface &interface, Camera &camera)
 
     if (firstPress(window, GLFW_KEY_ENTER) && interface.checkCmd())
     {
-        std::vector<CmdWord> cmdWords = interface.getCmd(); // set interface.commandSent = false;
-        switch (cmdWords[0]){
-            case CmdWord::SUMMON: 
-                std::cout << "summon" << std::endl;
+        ObjectID objectId;
+        float x;
+        float y;
+        float z;
+
+        Command command = interface.getCmd(); // set interface.commandSent = false;
+        switch (command.id){
+            case CommandID::SUMMON_OBJECT:
+                std::cout << "SUMMON_OBJECT" << std::endl;
+                objectId = interface.mapObject(command.parameters[0]);
+                std::cout << (int)objectId << std::endl;
                 break;
-            case CmdWord::SHOW: 
-                std::cout << "show" << std::endl;
+
+            case CommandID::SUMMON_OBJECT_AT_POS:
+                std::cout << "SUMMON_OBJECT_AT_POS" << std::endl;
+                objectId = interface.mapObject(command.parameters[0]);
+                x = std::stof(command.parameters[1]);
+                y = std::stof(command.parameters[2]);
+                z = std::stof(command.parameters[3]);
+                std::cout << (int)objectId << " " << x << " "  << y << " "  << z << std::endl;
                 break;
-            case CmdWord::ADD: 
-                std::cout << "add" << std::endl;
+
+            case CommandID::LIST_OBJECTS:
+                std::cout << "LIST_OBJECTS" << std::endl;
                 break;
-            case CmdWord::REMOVE: 
-                std::cout << "remove" << std::endl;
+
+            case CommandID::SHOW_COLLIDERS:
+                std::cout << "SHOW_COLLIDERS" << std::endl;
                 break;
-            case CmdWord::END: 
-                std::cout << "end" << std::endl;
+
+            case CommandID::HIDE_COLLIDERS:
+                std::cout << "HIDE_COLLIDERS" << std::endl;
+                break;
+
+            case CommandID::ERROR:
+                std::cout << "ERROR" << std::endl;
+                break;
+
+            default:
+                throw std::runtime_error("Main ProcessInput: CommandID not found");
                 break;
         }
+
     }
 
     if(interface.cmdLineOpen && camera.focus){

@@ -13,7 +13,7 @@ class Object
         rp3d::RigidBody* body;
 
         Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType);
-        void Draw(Shader& shader, Camera& camera, DrawType type = DRAW_REGULAR);
+        void Draw(Shader& shader, Camera& camera, DrawType type = DrawType::REGULAR);
     private:
         static int nextId;
         int id;

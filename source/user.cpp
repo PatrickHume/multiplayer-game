@@ -1,5 +1,6 @@
 #include"../headers/user.h"
 
+// this class is a bit odd and may be removed in a later refactor
 User::User(){
 
 }
@@ -12,7 +13,7 @@ void User::selectObject(Object* object){
 
 void User::drawSelected(Shader& shader, Camera& camera){
     if(objectIsSelected){
-        selectedObject->Draw(shader, camera, DRAW_OUTLINE);
+        selectedObject->Draw(shader, camera, DrawType::OUTLINE);
     }
 }
 

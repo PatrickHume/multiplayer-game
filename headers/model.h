@@ -13,7 +13,7 @@ class Model
 public:
     Model(const char* file);
 
-    void Draw(Shader& shader, Camera& camera, DrawType type = DRAW_REGULAR);
+    void Draw(Shader& shader, Camera& camera, DrawType type = DrawType::REGULAR);
     void applyMatrix(glm::mat4 matrixMesh);
 
     void applyTranslation(glm::vec3 position);

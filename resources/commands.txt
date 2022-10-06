@@ -1,0 +1,29 @@
+//------------------------TYPES-------------------------------------------------------------
+
+<objectType> -> (object)
+<position> -> (float) (float) (float)
+
+
+
+
+//------------------------COMMANDS----------------------------------------------------------
+//NEUMONIC,     COMMAND,                        (neumonics mapped to enums in interface.cpp)
+
+so:             summon <objectType>
+soap:           summon <objectType> at <position>
+
+lo:             list objectTypes
+
+sc:             show colliders
+hc:             hide colliders
+
+
+
+
+//------------------------REGEX-------------------------------------------------------------
+
+(object) -> (lada|cube)
+(int) -> (d+)
+(float) -> ((?:\.\d+)|\d+(?:\.\d+)?)
+
+

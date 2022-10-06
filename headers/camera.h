@@ -12,10 +12,10 @@
 
 #include"shader.h"
 
-enum DrawType {
-    DRAW_REGULAR,
-    DRAW_OUTLINE,
-    DRAW_PREPARE_OUTLINE
+enum class DrawType {
+    REGULAR,
+    OUTLINE,
+    PREPARE_OUTLINE
 };
 
 class Camera

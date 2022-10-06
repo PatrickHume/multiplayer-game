@@ -30,9 +30,9 @@ void Object::Draw(Shader& shader, Camera& camera, DrawType drawType){
     model->setQuaternion(quaternion);
 
     // if the model is selected, prepare the stencil buffer
-    // for any draw calls with DRAW_OUTLINE
-    if (drawType == DRAW_REGULAR && isSelected){
-        drawType = DRAW_PREPARE_OUTLINE;
+    // for any draw calls with OUTLINE
+    if (drawType == DrawType::REGULAR && isSelected){
+        drawType = DrawType::PREPARE_OUTLINE;
     }
 
     model->Draw(shader, camera, drawType);

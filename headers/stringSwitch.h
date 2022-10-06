@@ -9,5 +9,6 @@
 
 void split(const std::string &s, char delim, std::vector<std::string> &elems);
 std::vector<std::string> split(const std::string &s, char delim);
+//void replaceAll(std::string& str, const std::string& from, const std::string& to);
 
 #endif
