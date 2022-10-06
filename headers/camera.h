@@ -43,6 +43,7 @@ public:
     void Matrix(Shader& shader, const char* uniform);
     //void Inputs(GLFWwindow* window);
     void Inputs(GLFWwindow* window);
+    glm::vec3 getPositionInFront(float dist = 5);
 };
 
 #endif

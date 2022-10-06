@@ -15,8 +15,8 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     // Create a physics world 
     physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
 
-    objects.push_back(Object(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC));
-    objects.push_back(Object(physicsWorld, &cubeModel, rp3d::BodyType::STATIC));
+    //objects.push_back(Object(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC));
+    //objects.push_back(Object(physicsWorld, &cubeModel, rp3d::BodyType::STATIC));
 
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
     textShader.Activate();
@@ -24,6 +24,7 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     // We can reuse these models many times per frame
 
     ladaModel.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
+    //ladaModel.setModelPosition(glm::vec3(0.00f,0.00f,0.00f));
     ladaModel.updateLocal();
 
     // Force vector (in Newton) 
@@ -52,6 +53,36 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     
 }
 
+void World::createObjectAtPos(ObjectID objectId, glm::vec3 pos){
+    rp3d::Vector3 position(pos.x, pos.y, pos.z); 
+    rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
+    rp3d::Transform transform(position, orientation); 
+
+    Model *model;
+    switch (objectId){
+        case ObjectID::LADA:
+            model = &ladaModel;
+            break;
+        case ObjectID::CUBE:
+            model = &cubeModel;
+            break;
+        default:
+            throw std::runtime_error("World createObject objectId not found");
+            break;
+    }
+
+    Object object(physicsWorld, model, rp3d::BodyType::DYNAMIC);
+    object.body->setTransform(transform);
+
+    objects.push_back(object);
+}
+
+void World::createObject(ObjectID objectId){
+    glm::vec3 pos = camera.getPositionInFront(20.0f);
+
+    createObjectAtPos(objectId, pos);
+}
+
 void World::ProcessInput(GLFWwindow *window){
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -75,7 +106,8 @@ void World::ProcessInput(GLFWwindow *window){
             case CommandID::SUMMON_OBJECT:
                 std::cout << "SUMMON_OBJECT" << std::endl;
                 objectId = interface.mapObject(command.parameters[0]);
-                std::cout << (int)objectId << std::endl;
+                createObject(objectId);
+                //std::cout << (int)objectId << std::endl;
                 break;
 
             case CommandID::SUMMON_OBJECT_AT_POS:
@@ -84,7 +116,8 @@ void World::ProcessInput(GLFWwindow *window){
                 x = std::stof(command.parameters[1]);
                 y = std::stof(command.parameters[2]);
                 z = std::stof(command.parameters[3]);
-                std::cout << (int)objectId << " " << x << " "  << y << " "  << z << std::endl;
+                createObjectAtPos(objectId,glm::vec3(z,y,z));
+                //std::cout << (int)objectId << " " << x << " "  << y << " "  << z << std::endl;
                 break;
 
             case CommandID::LIST_OBJECTS:

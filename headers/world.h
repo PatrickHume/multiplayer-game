@@ -16,7 +16,8 @@ class World
         void Update();
         void Draw();  
         void Delete();    
-
+        void createObject(ObjectID objectId);
+        void createObjectAtPos(ObjectID objectId, glm::vec3 pos);
     private:
         bool keyIsHeld[260];
         bool firstPress(GLFWwindow *window, int key);

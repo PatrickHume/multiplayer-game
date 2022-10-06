@@ -41,7 +41,7 @@ void Camera::Inputs(GLFWwindow* window)
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && mousePressed){
         mousePressed = false;
     }
-    
+
     if (locked){
         return;
     }
@@ -109,5 +109,9 @@ void Camera::Inputs(GLFWwindow* window)
 
         glfwSetCursorPos(window, (width / 2), (height / 2));
     }
+}
 
+glm::vec3 Camera::getPositionInFront(float dist){
+    glm::vec3 pos = position;
+    return pos + orientation*dist;
 }
