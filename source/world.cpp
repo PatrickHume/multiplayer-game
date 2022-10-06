@@ -6,12 +6,13 @@ outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag")
 textShader("resources/shaders/text.vert","resources/shaders/text.frag"),
 ladaModel("resources/models/lada/scene.gltf"),
 cubeModel("resources/models/cube/scene.gltf"),
+floorModel("resources/models/cube/scene.gltf"),
 camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
 {
     World::width = width;
     World::height = height;
 
-    physicsWorldSettings.gravity = rp3d::Vector3(0, 0, 0); 
+    physicsWorldSettings.gravity = rp3d::Vector3(0, -9.8, 0); 
     // Create a physics world 
     physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
 
@@ -24,13 +25,44 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     // We can reuse these models many times per frame
 
     ladaModel.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
-    //ladaModel.setModelPosition(glm::vec3(0.00f,0.00f,0.00f));
-    ladaModel.updateLocal();
+
+    //resize the cube a length of 1 unit (the model is length 2)
+    cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
+
+    //resize the ground to 40, 1, 40
+    floorModel.setModelScale(glm::vec3(20.0f,0.5f,20.0f));
 
     // Force vector (in Newton) 
     rp3d::Vector3 force(2.0, 0.0, 0.0); 
     // Point where the force is applied 
     rp3d::Vector3 point(4.0, 5.0, 6.0); 
+
+
+
+    rp3d::Vector3 position(0, -40, 0); 
+    rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
+    rp3d::Transform transform(position, orientation); 
+
+    Object ground(physicsWorld, &floorModel, rp3d::BodyType::STATIC);
+    ground.body->setTransform(transform);
+
+    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(20.0f,0.5f,20.0f);
+    rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,0.0f,0.0f);
+    rp3d::Quaternion    boxOrientation = rp3d::Quaternion::identity();
+    rp3d::Transform     boxTransform   = rp3d::Transform::identity();
+
+    BoxCollider collider{
+        boxHalfExtents,
+        boxPosition,
+        boxOrientation,
+        boxTransform
+    };
+
+    rp3d::BoxShape* boxShape = physicsCommon.createBoxShape(collider.halfExtents);
+    ground.addBoxCollider(collider, boxShape);
+
+    objects.push_back(ground);
+
 
     // Apply a force to the body 
     //lada.body->applyLocalForceAtLocalPosition(force, point);
@@ -74,6 +106,21 @@ void World::createObjectAtPos(ObjectID objectId, glm::vec3 pos){
     Object object(physicsWorld, model, rp3d::BodyType::DYNAMIC);
     object.body->setTransform(transform);
 
+    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(0.5f,0.5f,0.5f);
+    rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,0.0f,0.0f);
+    rp3d::Quaternion    boxOrientation = rp3d::Quaternion::identity();
+    rp3d::Transform     boxTransform   = rp3d::Transform::identity();
+
+    BoxCollider collider{
+        boxHalfExtents,
+        boxPosition,
+        boxOrientation,
+        boxTransform
+    };
+
+    rp3d::BoxShape* boxShape = physicsCommon.createBoxShape(collider.halfExtents);
+    object.addBoxCollider(collider, boxShape);
+    
     objects.push_back(object);
 }
 
@@ -194,9 +241,10 @@ void World::Draw(){
 		// Tell OpenGL which Shader Program we want to use
         
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
-
+        
         for(int i = 0; i < objects.size(); i++){
             objects[i].Draw(defaultShader, camera);
+            objects[i].DrawColliders(defaultShader, camera, cubeModel);
         }
 
         user.drawSelected(outlineShader, camera);

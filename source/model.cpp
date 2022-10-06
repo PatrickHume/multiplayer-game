@@ -71,6 +71,7 @@ void Model::setScale(glm::vec3 scale)
 void Model::setModelPosition(glm::vec3 position)
 {
     Model::modelPosition = position;
+    updateLocal();
 }
 void Model::setModelOrientation(glm::vec3 orientation, glm::vec3 up)
 {
@@ -82,10 +83,12 @@ void Model::setModelOrientation(glm::vec3 orientation, glm::vec3 up)
     }
     glm::mat4 rotMatrix = glm::lookAt(glm::vec3(0), orientation, glm::normalize(up));
     Model::modelQuaternion = glm::quat_cast(rotMatrix);
+    updateLocal();
 }
 void Model::setModelScale(glm::vec3 scale)
 {
     Model::modelScale = scale;
+    updateLocal();
 }
 
 void Model::updateLocal(){

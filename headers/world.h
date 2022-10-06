@@ -42,6 +42,7 @@ class World
 
         Model ladaModel;
         Model cubeModel;
+        Model floorModel;
 
         Camera camera;
         Interface interface;
