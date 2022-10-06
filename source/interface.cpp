@@ -1,7 +1,7 @@
 #include"../headers/interface.h"
 
 // Constructor that generates a Elements Buffer Object and links it to indices
-Interface::Interface(int width, int height)
+Interface::Interface()
 {
     std::regex findNeumonicRegex("^[A-z]+(?=:\\s)");
     std::regex findLabelRegex("^<[A-z0-9\\.\\s]+>(?= -> )");
@@ -12,9 +12,6 @@ Interface::Interface(int width, int height)
 
     std::regex findString("string");
     std::regex findFloat("float");
-
-    Interface::width = width;
-    Interface::height = height;
 
     //map message type to colors
     mapMsgTypeToCol[MessageType::REGULAR]   = glm::vec3(0.7f, 0.7f, 0.7f);

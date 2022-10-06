@@ -47,7 +47,7 @@ class Interface
 {
 public:
 	// Constructor that generates a Elements Buffer Object and links it to indices
-	Interface(int width, int height);
+	Interface();
     void toggleCmdLine();
     // time is used in draw to add a flashing cursor effect
     void Draw(TextRenderer &textRenderer, Shader &textShader, double time = 0.0);
