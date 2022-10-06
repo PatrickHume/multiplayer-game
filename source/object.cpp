@@ -35,6 +35,7 @@ void Object::Draw(Shader& shader, Camera& camera, DrawType drawType){
 
     model->setPosition(position);
     model->setQuaternion(quaternion);
+    model->setScale(glm::vec3(1.0,1.0,1.0));
 
     // if the model is selected, prepare the stencil buffer
     // for any draw calls with OUTLINE

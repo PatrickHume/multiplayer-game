@@ -65,6 +65,8 @@ class World
         int width;
         int height;
 
+        bool showColliders = false;
+
         std::vector<Object> objects;
 };
 

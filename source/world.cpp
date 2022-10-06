@@ -6,13 +6,13 @@ outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag")
 textShader("resources/shaders/text.vert","resources/shaders/text.frag"),
 ladaModel("resources/models/lada/scene.gltf"),
 cubeModel("resources/models/cube/scene.gltf"),
-floorModel("resources/models/cube/scene.gltf"),
+floorModel("resources/models/plane/scene.gltf"),
 camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
 {
     World::width = width;
     World::height = height;
 
-    physicsWorldSettings.gravity = rp3d::Vector3(0, -9.8, 0); 
+    physicsWorldSettings.gravity = rp3d::Vector3(0.0, 0.0, 0.0); 
     // Create a physics world 
     physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
 
@@ -30,7 +30,7 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
 
     //resize the ground to 40, 1, 40
-    floorModel.setModelScale(glm::vec3(20.0f,0.5f,20.0f));
+    floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
 
     // Force vector (in Newton) 
     rp3d::Vector3 force(2.0, 0.0, 0.0); 
@@ -39,15 +39,15 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
 
 
 
-    rp3d::Vector3 position(0, -40, 0); 
+    rp3d::Vector3 position(0, -5, 0); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation); 
 
     Object ground(physicsWorld, &floorModel, rp3d::BodyType::STATIC);
     ground.body->setTransform(transform);
 
-    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(20.0f,0.5f,20.0f);
-    rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,0.0f,0.0f);
+    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(20.0f,1.0f,20.0f);
+    rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,-1.0f,0.0f);
     rp3d::Quaternion    boxOrientation = rp3d::Quaternion::identity();
     rp3d::Transform     boxTransform   = rp3d::Transform::identity();
 
@@ -167,16 +167,68 @@ void World::ProcessInput(GLFWwindow *window){
                 //std::cout << (int)objectId << " " << x << " "  << y << " "  << z << std::endl;
                 break;
 
+            case CommandID::SAVE_COLLIDERS:
+                std::cout << "SAVE_COLLIDERS" << std::endl;
+                break;
+            case CommandID::EDIT_COLLIDERS:
+                std::cout << "EDIT_COLLIDERS" << std::endl;
+                break;
+            case CommandID::SELECT_OBJECT:
+                std::cout << "SELECT_OBJECT" << std::endl;
+                break;
+            case CommandID::ADD_COLLIDER:
+                std::cout << "ADD_COLLIDER" << std::endl;
+                break;
+            case CommandID::DEL_COLLIDER:
+                std::cout << "DEL_COLLIDER" << std::endl;
+                break;
+            case CommandID::NEXT_COLLIDER:
+                std::cout << "NEXT_COLLIDER" << std::endl;
+                break;
+            case CommandID::PREV_COLLIDER:
+                std::cout << "PREV_COLLIDER" << std::endl;
+                break;
+
+            case CommandID::GET_COLLIDER_POSITION:
+                std::cout << "GET_COLLIDER_POSITION" << std::endl;
+                break;
+            case CommandID::GET_COLLIDER_ROTATION:
+                std::cout << "GET_COLLIDER_ROTATION" << std::endl;
+                break;
+            case CommandID::GET_COLLIDER_SCALE:
+                std::cout << "GET_COLLIDER_SCALE" << std::endl;
+                break;
+            case CommandID::SET_COLLIDER_POSITION:
+                std::cout << "SET_COLLIDER_POSITION" << std::endl;
+                x = std::stof(command.parameters[0]);
+                y = std::stof(command.parameters[0]);
+                z = std::stof(command.parameters[0]);
+                break;
+            case CommandID::SET_COLLIDER_ROTATION:
+                std::cout << "SET_COLLIDER_ROTATION" << std::endl;
+                x = std::stof(command.parameters[0]);
+                y = std::stof(command.parameters[0]);
+                z = std::stof(command.parameters[0]);
+                break;
+            case CommandID::SET_COLLIDER_SCALE:
+                std::cout << "SET_COLLIDER_SCALE" << std::endl;
+                x = std::stof(command.parameters[0]);
+                y = std::stof(command.parameters[0]);
+                z = std::stof(command.parameters[0]);
+                break;
+
             case CommandID::LIST_OBJECTS:
                 std::cout << "LIST_OBJECTS" << std::endl;
                 break;
 
             case CommandID::SHOW_COLLIDERS:
                 std::cout << "SHOW_COLLIDERS" << std::endl;
+                showColliders = true;
                 break;
 
             case CommandID::HIDE_COLLIDERS:
                 std::cout << "HIDE_COLLIDERS" << std::endl;
+                showColliders = false;
                 break;
 
             case CommandID::ERROR:
@@ -244,7 +296,9 @@ void World::Draw(){
         
         for(int i = 0; i < objects.size(); i++){
             objects[i].Draw(defaultShader, camera);
-            objects[i].DrawColliders(defaultShader, camera, cubeModel);
+            if(showColliders){
+                objects[i].DrawColliders(defaultShader, camera, cubeModel);
+            }
         }
 
         user.drawSelected(outlineShader, camera);

@@ -22,11 +22,26 @@ Interface::Interface()
     mapObjects["cube"]         = ObjectID::CUBE;
 
     //map neumonics to enums
-    mapNeumonics["so"]         = CommandID::SUMMON_OBJECT;
-    mapNeumonics["soap"]       = CommandID::SUMMON_OBJECT_AT_POS;
-    mapNeumonics["lo"]         = CommandID::LIST_OBJECTS;
-    mapNeumonics["sc"]         = CommandID::SHOW_COLLIDERS;
-    mapNeumonics["hc"]         = CommandID::HIDE_COLLIDERS;
+    mapNeumonics["so"]          = CommandID::SUMMON_OBJECT;
+    mapNeumonics["soap"]        = CommandID::SUMMON_OBJECT_AT_POS;
+    mapNeumonics["lo"]          = CommandID::LIST_OBJECTS;
+    mapNeumonics["sc"]          = CommandID::SHOW_COLLIDERS;
+    mapNeumonics["hc"]          = CommandID::HIDE_COLLIDERS;
+    mapNeumonics["svc"]         = CommandID::SAVE_COLLIDERS;
+    mapNeumonics["ec"]          = CommandID::EDIT_COLLIDERS;
+
+    mapNeumonics["slo"]         = CommandID::SELECT_OBJECT;
+    mapNeumonics["ac"]          = CommandID::ADD_COLLIDER;
+    mapNeumonics["dc"]          = CommandID::DEL_COLLIDER;
+    mapNeumonics["nc"]          = CommandID::NEXT_COLLIDER;
+    mapNeumonics["pc"]          = CommandID::PREV_COLLIDER;
+
+    mapNeumonics["gcp"]         = CommandID::GET_COLLIDER_POSITION;
+    mapNeumonics["gcr"]         = CommandID::GET_COLLIDER_ROTATION;
+    mapNeumonics["gcs"]         = CommandID::GET_COLLIDER_SCALE;
+    mapNeumonics["scp"]         = CommandID::SET_COLLIDER_POSITION;
+    mapNeumonics["scr"]         = CommandID::SET_COLLIDER_ROTATION;
+    mapNeumonics["scs"]         = CommandID::SET_COLLIDER_SCALE;
 
     std::cout << "mapStringValues contains "
     << mapNeumonics.size()

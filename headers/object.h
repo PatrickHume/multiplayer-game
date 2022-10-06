@@ -32,6 +32,7 @@ class Object
 
         std::vector<BoxCollider> boxColliders;
         bool showColliders = false;
+        int selectedCollider = 0;
 };
 
 #endif
