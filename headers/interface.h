@@ -10,27 +10,6 @@
 #include "textRenderer.h"
 #include "camera.h"
 
-// Value-Defintions of the different String values
-enum class CommandID {  SUMMON_OBJECT,
-                        SUMMON_OBJECT_AT_POS,
-                        LIST_OBJECTS,
-                        SHOW_COLLIDERS,
-                        HIDE_COLLIDERS,
-                        SAVE_COLLIDERS,
-                        EDIT_COLLIDERS,
-                        GET_COLLIDER_POSITION,
-                        GET_COLLIDER_ROTATION,
-                        GET_COLLIDER_SCALE,
-                        SET_COLLIDER_POSITION,
-                        SET_COLLIDER_ROTATION,
-                        SET_COLLIDER_SCALE,
-                        SELECT_OBJECT,
-                        ADD_COLLIDER,
-                        DEL_COLLIDER,
-                        NEXT_COLLIDER,
-                        PREV_COLLIDER,                        
-                        ERROR };
-
 enum class ObjectID {   LADA,
                         CUBE};
 
@@ -43,7 +22,7 @@ struct Message {
 };
 
 struct CommandRuleset{
-    CommandID id;
+    std::string name;
     std::string labelRule;  // this is the rule in its label form i.e.  summon <objectType> at <position>
     std::string typeRule;   // this is the rule in its type form i.e.   summon (object) at (float) (float) (float)
     std::string regexRule;  // this is the rule in its regex form i.e.  summon [lada|cube] at (\.\d+)|\d+(\.\d+)? (\.\d+)|\d+(\.\d+)? (\.\d+)|\d+(\.\d+)?
@@ -52,7 +31,7 @@ struct CommandRuleset{
 };
 
 struct Command{
-    CommandID id;
+    std::string name;
     std::vector<std::string> parameters;
 };
 
@@ -80,10 +59,7 @@ public:
 
     Camera* camera;
 
-    ObjectID mapObject(std::string& name);
 private:
-    std::map<std::string, CommandID>    mapNeumonics;
-    std::map<std::string, ObjectID>     mapObjects;
     std::map<MessageType, glm::vec3>    mapMsgTypeToCol;
     std::vector<std::pair<std::regex, std::string>> typeRules;
     std::vector<std::pair<std::regex, std::string>> regexRules;

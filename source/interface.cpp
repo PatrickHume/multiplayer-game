@@ -17,36 +17,6 @@ Interface::Interface()
     mapMsgTypeToCol[MessageType::REGULAR]   = glm::vec3(0.7f, 0.7f, 0.7f);
     mapMsgTypeToCol[MessageType::ERROR]     = glm::vec3(1.0f, 0.44f, 0.39f);
 
-    //map oject names to enums
-    mapObjects["lada"]         = ObjectID::LADA;
-    mapObjects["cube"]         = ObjectID::CUBE;
-
-    //map neumonics to enums
-    mapNeumonics["so"]          = CommandID::SUMMON_OBJECT;
-    mapNeumonics["soap"]        = CommandID::SUMMON_OBJECT_AT_POS;
-    mapNeumonics["lo"]          = CommandID::LIST_OBJECTS;
-    mapNeumonics["sc"]          = CommandID::SHOW_COLLIDERS;
-    mapNeumonics["hc"]          = CommandID::HIDE_COLLIDERS;
-    mapNeumonics["svc"]         = CommandID::SAVE_COLLIDERS;
-    mapNeumonics["ec"]          = CommandID::EDIT_COLLIDERS;
-
-    mapNeumonics["slo"]         = CommandID::SELECT_OBJECT;
-    mapNeumonics["ac"]          = CommandID::ADD_COLLIDER;
-    mapNeumonics["dc"]          = CommandID::DEL_COLLIDER;
-    mapNeumonics["nc"]          = CommandID::NEXT_COLLIDER;
-    mapNeumonics["pc"]          = CommandID::PREV_COLLIDER;
-
-    mapNeumonics["gcp"]         = CommandID::GET_COLLIDER_POSITION;
-    mapNeumonics["gcr"]         = CommandID::GET_COLLIDER_ROTATION;
-    mapNeumonics["gcs"]         = CommandID::GET_COLLIDER_SCALE;
-    mapNeumonics["scp"]         = CommandID::SET_COLLIDER_POSITION;
-    mapNeumonics["scr"]         = CommandID::SET_COLLIDER_ROTATION;
-    mapNeumonics["scs"]         = CommandID::SET_COLLIDER_SCALE;
-
-    std::cout << "mapStringValues contains "
-    << mapNeumonics.size()
-    << " entries." << std::endl;
-
     // open commands.txt and separate the typeRules and the commandRulesets
     std::string line;
     std::ifstream cmdFile;
@@ -103,24 +73,19 @@ Interface::Interface()
         }else{
             std::smatch findMatch;
             regex_search(line, findMatch, findNeumonicRegex);
-            // throw error if no neumonic found
+            // throw error if no name found
             if(findMatch.str(0).length() == 0)
                 throw std::runtime_error("Interface found illegal command rule in type");
 
-            std::string neumonic = findMatch.str(0);
+            std::string name = findMatch.str(0);
 
-            if (mapNeumonics.find(neumonic) == mapNeumonics.end()) {
-                throw std::runtime_error("Interface couldnt find neumonic \""+neumonic+"\" in mapNeumonics.");
-            }
-
-            CommandID id = mapNeumonics[neumonic];
-            // now remove the neumonic and its remaining ": " part from the line
+            // now remove the name and its remaining ": " part from the line
             std::string labelRule = line.substr(findMatch.position() + 2 + findMatch.length());
 
             // begin building the command group
             // we will use the first label rule to populate the type and regex ruless
             CommandRuleset commandRuleset{
-                id,
+                name,
                 labelRule,      // (labelRule) this is the rule in its label form i.e.  summon <objectType> at <position>
                 std::string(),  // (typeRule) this is the rule in its type form i.e.    summon (object) at (float) (float) (float)
                 std::string(),  // (regexRule) this is the rule in its regex form i.e.  summon [lada|cube] at (\.\d+)|\d+(\.\d+)? (\.\d+)|\d+(\.\d+)? (\.\d+)|\d+(\.\d+)?
@@ -177,7 +142,7 @@ Interface::Interface()
     // display each command group
     std::cout << "--------------" << std::endl;
     for(int i = 0; i < commandRulesets.size(); i++){
-        std::cout << "id:        " << commandRulesets[i].id << std::endl;
+        std::cout << "name:        " << commandRulesets[i].name << std::endl;
         std::cout << "labelRule: " << commandRulesets[i].labelRule << std::endl;
         std::cout << "typeRule:  " << commandRulesets[i].typeRule << std::endl;
         std::cout << "regexRule: " << commandRulesets[i].regexRule << std::endl;
@@ -239,7 +204,7 @@ Command Interface::getCmd(){
 
     //prepare command to send to main
     Command command;
-    CommandID id = CommandID::ERROR;
+    std::string name;
     std::vector<std::string> parameters;
 
     std::smatch findMatch;
@@ -250,7 +215,7 @@ Command Interface::getCmd(){
             continue;
         CommandRuleset commandRuleset = commandRulesets[i];
 
-        id = commandRuleset.id;
+        name = commandRuleset.name;
         if(findMatch.size()-1 != commandRuleset.numOfArgs)
             std::cout << findMatch.size()-1 << " != " << commandRuleset.numOfArgs << std::endl;
             //throw std::runtime_error("Num of args in interface command doesn't match num in commandRuleset.");
@@ -261,10 +226,10 @@ Command Interface::getCmd(){
         break;
     }
 
-    command.id = id;
+    command.name = name;
     command.parameters = parameters;
 
-    if (id == CommandID::ERROR){
+    if (name.length() == 0){
         cmdHistory.push_back(commandNotFoundMessage);
     }
 
@@ -272,11 +237,4 @@ Command Interface::getCmd(){
     cmdInput.clear();
     // send the command to main
     return command;
-}
-
-ObjectID Interface::mapObject(std::string& name){
-    if (mapObjects.find(name) == mapObjects.end()) {
-        throw std::runtime_error("Interface couldnt find \""+name+"\" in mapObjects.");
-    }
-    return mapObjects[name];
 }

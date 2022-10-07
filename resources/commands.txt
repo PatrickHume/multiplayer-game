@@ -5,35 +5,35 @@
 <rotation>      -> (float) (float) (float)
 <scale>         -> (float) (float) (float)
 
-//IF ADDING ANY NEW COMMANDS, IT IS IMPORTANT TO EDIT BOTH
-//CommandID IN interface.h, mapNeumonics IN interface.cpp,
+//If adding any new commands, it is important to edit
+//world.h and world.cpp,
 //AND ProcessInput IN world.cpp.
 //------------------------COMMANDS----------------------------------------------------------
-//NEUMONIC,     COMMAND,                        (neumonics mapped to enums in interface.cpp)
+//Function Name,        Command,                (neumonics mapped to enums in interface.cpp)
 
-so:             summon <objectType>
-soap:           summon <objectType> at <position>
+summonOject:            summon <objectType>
+summonObjectAtPos:      summon <objectType> at <position>
 
-lo:             list objects
+listObjects:            list objects
 
-sc:             show colliders
-hc:             hide colliders
-svc:            save colliders
-ec:             edit colliders
+showColliders:          show colliders
+hideColliders:          hide colliders
+saveColliders:          save colliders
+editColliders:          edit colliders
 
-slo:            select object
-ac:             add collider
-dc:             del collider
-nc:             next collider
-pc:             prev collider
+selectObject:           select object
+addCollider:            add collider
+delCollider:            del collider
+nextCollider:           next collider
+prevCollider:           prev collider
 
-gcp:            get collider position
-gcr:            get collider rotation
-gcs:            get collider scale
+getColliderPosition:    get collider position
+getColliderRotation:    get collider rotation
+getColliderScale:       get collider scale
 
-scp:            set collider position <position>
-scr:            set collider rotation <rotation>
-scs:            set collider scale    <scale>
+setColliderPosition:    set collider position <position>
+setColliderRotation:    set collider rotation <rotation>
+setColliderScale:       set collider scale    <scale>
 
 //------------------------REGEX-------------------------------------------------------------
 

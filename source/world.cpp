@@ -9,6 +9,7 @@ cubeModel("resources/models/cube/scene.gltf"),
 floorModel("resources/models/plane/scene.gltf"),
 camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
 {
+
     World::width = width;
     World::height = height;
 
@@ -67,8 +68,6 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     // Apply a force to the body 
     //lada.body->applyLocalForceAtLocalPosition(force, point);
 
-    //user.selectObject(&lada);
-
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
@@ -85,23 +84,10 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     
 }
 
-void World::createObjectAtPos(ObjectID objectId, glm::vec3 pos){
+void World::createObjectAtPos(Model* model, glm::vec3 pos){
     rp3d::Vector3 position(pos.x, pos.y, pos.z); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation); 
-
-    Model *model;
-    switch (objectId){
-        case ObjectID::LADA:
-            model = &ladaModel;
-            break;
-        case ObjectID::CUBE:
-            model = &cubeModel;
-            break;
-        default:
-            throw std::runtime_error("World createObject objectId not found");
-            break;
-    }
 
     Object object(physicsWorld, model, rp3d::BodyType::DYNAMIC);
     object.body->setTransform(transform);
@@ -124,10 +110,9 @@ void World::createObjectAtPos(ObjectID objectId, glm::vec3 pos){
     objects.push_back(object);
 }
 
-void World::createObject(ObjectID objectId){
+void World::createObject(Model* model){
     glm::vec3 pos = camera.getPositionInFront(20.0f);
-
-    createObjectAtPos(objectId, pos);
+    createObjectAtPos(model, pos);
 }
 
 void World::ProcessInput(GLFWwindow *window){
@@ -143,103 +128,10 @@ void World::ProcessInput(GLFWwindow *window){
 
     if (firstPress(window, GLFW_KEY_ENTER) && interface.checkCmd())
     {
-        ObjectID objectId;
-        float x;
-        float y;
-        float z;
-
         Command command = interface.getCmd(); // set interface.commandSent = false;
-        switch (command.id){
-            case CommandID::SUMMON_OBJECT:
-                std::cout << "SUMMON_OBJECT" << std::endl;
-                objectId = interface.mapObject(command.parameters[0]);
-                createObject(objectId);
-                //std::cout << (int)objectId << std::endl;
-                break;
-
-            case CommandID::SUMMON_OBJECT_AT_POS:
-                std::cout << "SUMMON_OBJECT_AT_POS" << std::endl;
-                objectId = interface.mapObject(command.parameters[0]);
-                x = std::stof(command.parameters[1]);
-                y = std::stof(command.parameters[2]);
-                z = std::stof(command.parameters[3]);
-                createObjectAtPos(objectId,glm::vec3(z,y,z));
-                //std::cout << (int)objectId << " " << x << " "  << y << " "  << z << std::endl;
-                break;
-
-            case CommandID::SAVE_COLLIDERS:
-                std::cout << "SAVE_COLLIDERS" << std::endl;
-                break;
-            case CommandID::EDIT_COLLIDERS:
-                std::cout << "EDIT_COLLIDERS" << std::endl;
-                break;
-            case CommandID::SELECT_OBJECT:
-                std::cout << "SELECT_OBJECT" << std::endl;
-                break;
-            case CommandID::ADD_COLLIDER:
-                std::cout << "ADD_COLLIDER" << std::endl;
-                break;
-            case CommandID::DEL_COLLIDER:
-                std::cout << "DEL_COLLIDER" << std::endl;
-                break;
-            case CommandID::NEXT_COLLIDER:
-                std::cout << "NEXT_COLLIDER" << std::endl;
-                break;
-            case CommandID::PREV_COLLIDER:
-                std::cout << "PREV_COLLIDER" << std::endl;
-                break;
-
-            case CommandID::GET_COLLIDER_POSITION:
-                std::cout << "GET_COLLIDER_POSITION" << std::endl;
-                break;
-            case CommandID::GET_COLLIDER_ROTATION:
-                std::cout << "GET_COLLIDER_ROTATION" << std::endl;
-                break;
-            case CommandID::GET_COLLIDER_SCALE:
-                std::cout << "GET_COLLIDER_SCALE" << std::endl;
-                break;
-            case CommandID::SET_COLLIDER_POSITION:
-                std::cout << "SET_COLLIDER_POSITION" << std::endl;
-                x = std::stof(command.parameters[0]);
-                y = std::stof(command.parameters[0]);
-                z = std::stof(command.parameters[0]);
-                break;
-            case CommandID::SET_COLLIDER_ROTATION:
-                std::cout << "SET_COLLIDER_ROTATION" << std::endl;
-                x = std::stof(command.parameters[0]);
-                y = std::stof(command.parameters[0]);
-                z = std::stof(command.parameters[0]);
-                break;
-            case CommandID::SET_COLLIDER_SCALE:
-                std::cout << "SET_COLLIDER_SCALE" << std::endl;
-                x = std::stof(command.parameters[0]);
-                y = std::stof(command.parameters[0]);
-                z = std::stof(command.parameters[0]);
-                break;
-
-            case CommandID::LIST_OBJECTS:
-                std::cout << "LIST_OBJECTS" << std::endl;
-                break;
-
-            case CommandID::SHOW_COLLIDERS:
-                std::cout << "SHOW_COLLIDERS" << std::endl;
-                showColliders = true;
-                break;
-
-            case CommandID::HIDE_COLLIDERS:
-                std::cout << "HIDE_COLLIDERS" << std::endl;
-                showColliders = false;
-                break;
-
-            case CommandID::ERROR:
-                std::cout << "ERROR" << std::endl;
-                break;
-
-            default:
-                throw std::runtime_error("Main ProcessInput: CommandID not found");
-                break;
+        if (mapCommands.find(command.name) != mapCommands.end()) {
+            (this->*mapCommands[command.name])(command.parameters);
         }
-
     }
 
     if(interface.cmdLineOpen && camera.focus){
@@ -290,13 +182,12 @@ void World::Draw(){
         // ------
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		// Tell OpenGL which Shader Program we want to use
         
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
         
         for(int i = 0; i < objects.size(); i++){
             objects[i].Draw(defaultShader, camera);
-            if(showColliders){
+            if(collidersAreVisible){
                 objects[i].DrawColliders(defaultShader, camera, cubeModel);
             }
         }
@@ -328,4 +219,83 @@ bool World::firstPress(GLFWwindow *window, int key){
         keyIsHeld[key] = false;
     }
     return false;
+}
+
+glm::vec3 World::stringVecToGlmVec3(std::vector<std::string>& params, int i){
+    glm::vec3 vec(
+        std::stof(params[i]),
+        std::stof(params[i+1]),
+        std::stof(params[i+2]));
+    return vec;
+}
+
+Model* World::stringToModel(std::string& name){
+    if (mapModels.find(name) == mapModels.end()) {
+        throw std::runtime_error("Interface couldnt find \""+name+"\" in mapModels.");
+    }
+    return mapModels[name];
+}
+World::functionPointer World::stringToCommand(std::string& name){
+    if (mapCommands.find(name) == mapCommands.end()) {
+        throw std::runtime_error("Interface couldnt find \""+name+"\" in mapCommands.");
+    }
+    return mapCommands[name];
+}
+
+void World::summonOject(std::vector<std::string> params){
+    Model* model = stringToModel(params[0]);
+    createObject(model);
+}
+void World::summonObjectAtPos(std::vector<std::string> params){
+    Model* model = stringToModel(params[0]);
+    glm::vec3 pos = stringVecToGlmVec3(params, 1); // offset by 1 as position 0 in params is taken by the object name
+    createObjectAtPos(model,pos);
+}
+void World::listObjects(std::vector<std::string> params){
+    std::cout << "listObjects" << std::endl;
+}
+void World::showColliders(std::vector<std::string> params){
+    std::cout << "showColliders" << std::endl;
+}
+void World::hideColliders(std::vector<std::string> params){
+    std::cout << "hideColliders" << std::endl;
+}
+void World::saveColliders(std::vector<std::string> params){
+    std::cout << "saveColliders" << std::endl;
+}
+void World::editColliders(std::vector<std::string> params){
+    std::cout << "editColliders" << std::endl;
+}
+void World::selectObject(std::vector<std::string> params){
+    std::cout << "selectObject" << std::endl;
+}
+void World::addCollider(std::vector<std::string> params){
+    std::cout << "addCollider" << std::endl;
+}
+void World::delCollider(std::vector<std::string> params){
+    std::cout << "delCollider" << std::endl;
+}
+void World::nextCollider(std::vector<std::string> params){
+    std::cout << "nextCollider" << std::endl;
+}
+void World::prevCollider(std::vector<std::string> params){
+    std::cout << "prevCollider" << std::endl;
+}
+void World::getColliderPosition(std::vector<std::string> params){
+    std::cout << "getColliderPosition" << std::endl;
+}
+void World::getColliderRotation(std::vector<std::string> params){
+    std::cout << "getColliderRotation" << std::endl;
+}
+void World::getColliderScale(std::vector<std::string> params){
+    std::cout << "getColliderScale" << std::endl;
+}
+void World::setColliderPosition(std::vector<std::string> params){
+    std::cout << "setColliderPosition" << std::endl;
+}
+void World::setColliderRotation(std::vector<std::string> params){
+    std::cout << "setColliderRotation" << std::endl;
+}
+void World::setColliderScale(std::vector<std::string> params){
+    std::cout << "setColliderScale" << std::endl;
 }

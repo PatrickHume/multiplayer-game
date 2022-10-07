@@ -16,8 +16,8 @@ class World
         void Update();
         void Draw();  
         void Delete();    
-        void createObject(ObjectID objectId);
-        void createObjectAtPos(ObjectID objectId, glm::vec3 pos);
+        void createObject(Model* model);
+        void createObjectAtPos(Model* model, glm::vec3 pos);
     private:
         bool keyIsHeld[260];
         bool firstPress(GLFWwindow *window, int key);
@@ -65,9 +65,59 @@ class World
         int width;
         int height;
 
-        bool showColliders = false;
+        bool collidersAreVisible = false;
 
         std::vector<Object> objects;
+
+        glm::vec3 stringVecToGlmVec3(std::vector<std::string>& params, int i);
+
+        //make models string referenceable
+        std::map<std::string, Model*> mapModels =  
+        {{"cube", &cubeModel},
+        {"floor", &floorModel}};
+        Model* stringToModel(std::string& name);
+
+        //make functions string referenceable
+        typedef void (World::*functionPointer)(std::vector<std::string>);
+        World::functionPointer stringToCommand(std::string& name);
+        std::map<std::string, functionPointer> mapCommands =  
+        {{"summonOject", &World::summonOject}, 
+        {"summonObjectAtPos",  &World::summonObjectAtPos}, 
+        {"listObjects",  &World::listObjects},
+        {"showColliders",  &World::showColliders},
+        {"hideColliders",  &World::hideColliders},
+        {"saveColliders",  &World::saveColliders},
+        {"editColliders",  &World::editColliders},
+        {"selectObject",  &World::selectObject},
+        {"addCollider",  &World::addCollider},
+        {"delCollider",  &World::delCollider},
+        {"nextCollider",  &World::nextCollider},
+        {"prevCollider",  &World::prevCollider}, 
+        {"getColliderPosition",  &World::getColliderPosition},
+        {"getColliderRotation",  &World::getColliderRotation},
+        {"getColliderScale",  &World::getColliderScale},
+        {"setColliderPosition",  &World::setColliderPosition},
+        {"setColliderRotation",  &World::setColliderRotation},
+        {"setColliderScale",  &World::setColliderScale}};
+        
+        void summonOject(           std::vector<std::string> params);
+        void summonObjectAtPos(     std::vector<std::string> params);
+        void listObjects(           std::vector<std::string> params);
+        void showColliders(         std::vector<std::string> params);
+        void hideColliders(         std::vector<std::string> params);
+        void saveColliders(         std::vector<std::string> params);
+        void editColliders(         std::vector<std::string> params);
+        void selectObject(          std::vector<std::string> params);
+        void addCollider(           std::vector<std::string> params);
+        void delCollider(           std::vector<std::string> params);
+        void nextCollider(          std::vector<std::string> params);
+        void prevCollider(          std::vector<std::string> params);
+        void getColliderPosition(   std::vector<std::string> params);
+        void getColliderRotation(   std::vector<std::string> params);
+        void getColliderScale(      std::vector<std::string> params);
+        void setColliderPosition(   std::vector<std::string> params);
+        void setColliderRotation(   std::vector<std::string> params);
+        void setColliderScale(      std::vector<std::string> params);
 };
 
 #endif
