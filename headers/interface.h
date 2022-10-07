@@ -14,6 +14,7 @@ enum class ObjectID {   LADA,
                         CUBE};
 
 enum class MessageType {REGULAR,
+                        DATA,
                         ERROR};
 
 struct Message {
@@ -51,6 +52,8 @@ public:
     void backspace();
     void submitCmd();
 
+    void write(Message message);
+
     bool cmdReady       = false;
     bool cmdLineOpen    = false;
 
@@ -60,7 +63,16 @@ public:
     Camera* camera;
 
 private:
-    std::map<MessageType, glm::vec3>    mapMsgTypeToCol;
+    std::map<MessageType, glm::vec3> mapMsgTypeToCol = {
+        {MessageType::REGULAR,  glm::vec3(0.85f, 0.85f, 0.85f)},
+        {MessageType::DATA,     glm::vec3(0.19f, 0.94f, 1.0f)},
+        {MessageType::ERROR,    glm::vec3(1.0f, 0.25f, 0.19f)}
+    };
+    std::map<MessageType, std::string> mapMsgTypeToPrefix = {
+        {MessageType::REGULAR,  ""},
+        {MessageType::DATA,     "    "},
+        {MessageType::ERROR,    "Error: "}
+    };
     std::vector<std::pair<std::regex, std::string>> typeRules;
     std::vector<std::pair<std::regex, std::string>> regexRules;
     std::vector<CommandRuleset> commandRulesets;
@@ -69,7 +81,7 @@ private:
 
     Message commandNotFoundMessage{
         MessageType::ERROR,
-        "Error: command not found",
+        "command not found",
     };
 };
 

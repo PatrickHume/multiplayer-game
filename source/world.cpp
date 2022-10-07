@@ -9,6 +9,10 @@ cubeModel("resources/models/cube/scene.gltf"),
 floorModel("resources/models/plane/scene.gltf"),
 camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
 {
+    //add model names from stringToModel to array
+    for(std::map<std::string, Model*>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
+        modelNames.push_back(it->first);
+    }
 
     World::width = width;
     World::height = height;
@@ -25,7 +29,9 @@ camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
     glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     // We can reuse these models many times per frame
 
-    ladaModel.setModelScale(glm::vec3(0.05f,0.05f,0.05f));
+    // resize lada to accurate size
+    ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
+    //ladaModel.setMass(930.0f);
 
     //resize the cube a length of 1 unit (the model is length 2)
     cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
@@ -252,7 +258,13 @@ void World::summonObjectAtPos(std::vector<std::string> params){
     createObjectAtPos(model,pos);
 }
 void World::listObjects(std::vector<std::string> params){
-    std::cout << "listObjects" << std::endl;
+    for(int i = 0; i < modelNames.size(); i++){
+        Message message{
+            MessageType::DATA,
+            modelNames[i]
+        };
+        interface.write(message);
+    }
 }
 void World::showColliders(std::vector<std::string> params){
     std::cout << "showColliders" << std::endl;

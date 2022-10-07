@@ -19,7 +19,7 @@ class World
         void createObject(Model* model);
         void createObjectAtPos(Model* model, glm::vec3 pos);
     private:
-        bool keyIsHeld[260];
+        bool keyIsHeld[260] = { 0 };
         bool firstPress(GLFWwindow *window, int key);
 
         // Generates Shader object using shaders defualt.vert and default.frag
@@ -74,8 +74,10 @@ class World
         //make models string referenceable
         std::map<std::string, Model*> mapModels =  
         {{"cube", &cubeModel},
-        {"floor", &floorModel}};
+        {"lada", &ladaModel}};
         Model* stringToModel(std::string& name);
+        //this is automatically populated with the key names in mapModels
+        std::vector<std::string> modelNames;
 
         //make functions string referenceable
         typedef void (World::*functionPointer)(std::vector<std::string>);

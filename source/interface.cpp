@@ -13,10 +13,6 @@ Interface::Interface()
     std::regex findString("string");
     std::regex findFloat("float");
 
-    //map message type to colors
-    mapMsgTypeToCol[MessageType::REGULAR]   = glm::vec3(0.7f, 0.7f, 0.7f);
-    mapMsgTypeToCol[MessageType::ERROR]     = glm::vec3(1.0f, 0.44f, 0.39f);
-
     // open commands.txt and separate the typeRules and the commandRulesets
     std::string line;
     std::ifstream cmdFile;
@@ -189,9 +185,19 @@ void Interface::Draw(TextRenderer &textRenderer, Shader &textShader, double time
     if(cmdLineOpen){
         textRenderer.renderText(textShader, cmdInput + (fmod(time,1.0) > 0.5 ? "_":""), x, y, s, glm::vec3(1.0f, 1.0f, 1.0f));
         for (int i = 0; i < cmdHistory.size(); i++){
-            textRenderer.renderText(textShader, cmdHistory[i].messageText, x, y+((cmdHistory.size()-i)*h), s, mapMsgTypeToCol[cmdHistory[i].messageType]);
+            textRenderer.renderText(
+                textShader, 
+                mapMsgTypeToPrefix[cmdHistory[i].messageType] + cmdHistory[i].messageText, 
+                x, 
+                y+((cmdHistory.size()-i)*h), 
+                s, 
+                mapMsgTypeToCol[cmdHistory[i].messageType]);
         }
     }
+}
+
+void Interface::write(Message message){
+    cmdHistory.push_back(message);
 }
 
 Command Interface::getCmd(){
