@@ -162,8 +162,8 @@ void Model::drawOutline(Shader& shader, Camera& camera){
 
 void Model::setUniforms(Shader& shader, Camera& camera){
     shader.Activate();
-    glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-    camera.Matrix(shader, "camMatrix");
+    camera.sendMatrix(shader, "camMatrix");
+    camera.sendPosition(shader, "camPos");
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "world"), 1, GL_FALSE, glm::value_ptr(world));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "local"), 1, GL_FALSE, glm::value_ptr(local));
 }

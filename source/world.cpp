@@ -10,7 +10,7 @@ cubeModel("resources/models/cube/scene.gltf"),
 floorModel("resources/models/plane/scene.gltf")
 {
     camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
-
+    
     // generate render and frame buffer objects
     glGenRenderbuffers( 1, &renderbufId0 );
     glGenRenderbuffers( 1, &renderbufId1 );
