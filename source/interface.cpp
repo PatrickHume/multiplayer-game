@@ -178,9 +178,9 @@ void Interface::Draw(TextRenderer &textRenderer, Shader &textShader, double time
     const float x = 25.0f;
     const float y = 25.0f;
     //height of text
-    const float h = 20.0f;
+    const float h = 35.0f;
     //size of text
-    const float s = 0.3f;
+    const float s = 0.5f;
 
     if(cmdLineOpen){
         textRenderer.renderText(textShader, cmdInput + (fmod(time,1.0) > 0.5 ? "_":""), x, y, s, glm::vec3(1.0f, 1.0f, 1.0f));

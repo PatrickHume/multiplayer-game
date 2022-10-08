@@ -22,9 +22,10 @@ Model::Model(const char* file)
     std::cout << "traversed" << std::endl;
 }
 
-glm::vec3 Model::getPosition(){ return position;}
-glm::quat Model::getQuaternion(){ return quaternion;}
-glm::vec3 Model::getScale(){    return scale;}
+//glm::vec3 Model::getPosition(){ return position;}
+//glm::quat Model::getQuaternion(){ return quaternion;}
+//glm::vec3 Model::getScale(){    return scale;}
+/*
 // apple translation
 void Model::applyTranslation(glm::vec3 position)
 {
@@ -43,7 +44,8 @@ void Model::applyScale(glm::vec3 scale)
         Model::scale.y*scale.y,
         Model::scale.z*scale.z);
 }
-
+*/
+/*
 void Model::setPosition(glm::vec3 position)
 {
     Model::position = position;
@@ -63,11 +65,13 @@ void Model::setOrientation(glm::vec3 orientation, glm::vec3 up)
     glm::mat4 rotMatrix = glm::lookAt(glm::vec3(0), orientation, glm::normalize(up));
     Model::quaternion = glm::quat_cast(rotMatrix);  
 }
+*/
+/*
 void Model::setScale(glm::vec3 scale)
 {
     Model::scale = scale;
 }
-
+*/
 void Model::setModelPosition(glm::vec3 position)
 {
     Model::modelPosition = position;
@@ -103,6 +107,10 @@ void Model::updateLocal(){
     local = trans * rot * sca;
 }
 
+void Model::setTransform(glm::mat4 transform){
+    world = transform;
+}
+/*
 void Model::updateWorld(){
     glm::mat4 trans = glm::mat4(1.0f);
     glm::mat4 rot = glm::mat4(1.0f);
@@ -114,55 +122,50 @@ void Model::updateWorld(){
 
     world = trans * rot * sca;
 }
-
-void Model::Draw(Shader& shader, Camera& camera, DrawType drawType)
+*/
+void Model::Draw(Shader& shader, Camera& camera)
 {
-    // too ambiguous, change to world = combineTransform
-    updateWorld();
+    setUniforms(shader, camera);
+    for (unsigned int i = 0; i < meshes.size(); i++){
+        meshes[i].Mesh::Draw(shader, camera, textures);
+    }
+} 
 
+void Model::drawPrepOutline(Shader& shader, Camera& camera)
+{
+    setUniforms(shader, camera);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilMask(0xFF);
+    for (unsigned int i = 0; i < meshes.size(); i++){
+        meshes[i].Mesh::Draw(shader, camera, textures);
+    }
+    glStencilMask(0x00);
+}
+
+void Model::drawId(Shader& shader, Camera& camera, int id){
+    setUniforms(shader, camera);
+    glUniform1i(glGetUniformLocation(shader.ID, "objectID"), id);
+    for (unsigned int i = 0; i < meshes.size(); i++){
+        meshes[i].Mesh::drawSimple(shader, camera);
+    }
+}
+
+void Model::drawOutline(Shader& shader, Camera& camera){
+    setUniforms(shader, camera);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);        
+    for (unsigned int i = 0; i < meshes.size(); i++){
+        meshes[i].Mesh::drawOutline(shader, camera, textures);
+    }
+    glStencilMask(0xFF);
+    glStencilFunc(GL_ALWAYS, 0, 0xFF);
+}
+
+void Model::setUniforms(Shader& shader, Camera& camera){
     shader.Activate();
     glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
     camera.Matrix(shader, "camMatrix");
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "world"), 1, GL_FALSE, glm::value_ptr(world));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "local"), 1, GL_FALSE, glm::value_ptr(local));
-
-    // we want only the rotation component for rotating the normals in the shader
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "worldRotation"), 1, GL_FALSE, glm::value_ptr(glm::toMat4(quaternion)));
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "localRotation"), 1, GL_FALSE, glm::value_ptr(glm::toMat4(modelQuaternion)));
-
-    switch(drawType){
-    // draws the model mesh by mesh.
-    case DrawType::REGULAR:
-        for (unsigned int i = 0; i < meshes.size(); i++){
-            meshes[i].Mesh::Draw(shader, camera, textures);
-        }
-        break;
-    //  draws the model and prepares the stencil to draw an outline later.
-    case DrawType::PREPARE_OUTLINE:
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-        for (unsigned int i = 0; i < meshes.size(); i++){
-            meshes[i].Mesh::Draw(shader, camera, textures);
-        }
-        glStencilMask(0x00);
-        break;
-    // this is a special draw case where the object is outlined
-    // currently at the cost of redrawing the object
-    case DrawType::OUTLINE:
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);   
-        //glDisable(GL_DEPTH_TEST);      
-        for (unsigned int i = 0; i < meshes.size(); i++){
-            meshes[i].Mesh::drawOutline(shader, camera, textures);
-        }
-        glStencilMask(0xFF);
-        glStencilFunc(GL_ALWAYS, 0, 0xFF);
-        //glEnable(GL_DEPTH_TEST);
-        break;
-
-    default:
-        throw std::runtime_error("Object DrawType invalid.");
-        break;
-    }
 }
 
 std::vector<unsigned char> Model::getData()

@@ -1,30 +1,64 @@
 #include"../headers/world.h"
 
-World::World(const unsigned int width, const unsigned int height) : 
+World::World(GLFWwindow *window) : 
 defaultShader("resources/shaders/default.vert","resources/shaders/default.frag"),
 outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag"),
 textShader("resources/shaders/text.vert","resources/shaders/text.frag"),
+idShader("resources/shaders/id.vert","resources/shaders/id.frag",true),
 ladaModel("resources/models/lada/scene.gltf"),
 cubeModel("resources/models/cube/scene.gltf"),
-floorModel("resources/models/plane/scene.gltf"),
-camera(width, height, glm::vec3(0.0f, 0.0f, 10.0f))
+floorModel("resources/models/plane/scene.gltf")
 {
+    camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+
+    // generate render and frame buffer objects
+    glGenRenderbuffers( 1, &renderbufId0 );
+    glGenRenderbuffers( 1, &renderbufId1 );
+    glGenRenderbuffers( 1, &depthbufId   );
+    glGenFramebuffers ( 1, &framebufId   );
+
+    // setup first renderbuffer (fragColor)
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbufId0);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, Screen::frameBufferWidth, Screen::frameBufferHeight);
+
+    // setup second renderbuffer (triID)
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbufId1);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32I, Screen::frameBufferWidth, Screen::frameBufferHeight);
+
+    // setup depth buffer
+    glBindRenderbuffer(GL_RENDERBUFFER, depthbufId);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, Screen::frameBufferWidth, Screen::frameBufferHeight);
+
+    // setup framebuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, framebufId);  
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbufId0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, renderbufId1);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,  GL_RENDERBUFFER, depthbufId  );
+    glEnable(GL_DEPTH_TEST);
+
+    // check if everything went well
+    GLenum stat = glCheckFramebufferStatus(GL_FRAMEBUFFER);  
+    if(stat != GL_FRAMEBUFFER_COMPLETE) { exit(0); }
+
+    // setup color attachments
+    const GLenum att[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, att);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     //add model names from stringToModel to array
     for(std::map<std::string, Model*>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
         modelNames.push_back(it->first);
     }
 
-    World::width = width;
-    World::height = height;
-
-    physicsWorldSettings.gravity = rp3d::Vector3(0.0, 0.0, 0.0); 
+    physicsWorldSettings.gravity = rp3d::Vector3(0.0, -9.8, 0.0); 
     // Create a physics world 
     physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
 
     //objects.push_back(Object(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC));
     //objects.push_back(Object(physicsWorld, &cubeModel, rp3d::BodyType::STATIC));
 
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(Screen::frameBufferWidth), 0.0f, static_cast<float>(Screen::frameBufferHeight));
     textShader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     // We can reuse these models many times per frame
@@ -127,7 +161,7 @@ void World::ProcessInput(GLFWwindow *window){
 
     if (firstPress(window, GLFW_KEY_GRAVE_ACCENT) && camera.focus)
     {
-        glfwSetCursorPos(window, (width / 2), (height / 2));
+        glfwSetCursorPos(window, (Screen::windowWidth / 2), (Screen::windowHeight / 2));
         interface.toggleCmdLine();
         camera.locked = interface.cmdLineOpen;
     }
@@ -194,7 +228,7 @@ void World::Draw(){
         for(int i = 0; i < objects.size(); i++){
             objects[i].Draw(defaultShader, camera);
             if(collidersAreVisible){
-                objects[i].DrawColliders(defaultShader, camera, cubeModel);
+                objects[i].drawColliders(defaultShader, camera, cubeModel);
             }
         }
 
@@ -208,6 +242,10 @@ void World::Delete(){
     physicsCommon.destroyPhysicsWorld(physicsWorld);
 	// Delete all the objects we've created
 	defaultShader.Delete();
+
+    glDeleteFramebuffers(1, &framebufId);
+    glDeleteRenderbuffers(1, &renderbufId0);
+    glDeleteRenderbuffers(1, &renderbufId1);
 }
 
 bool World::firstPress(GLFWwindow *window, int key){
@@ -248,14 +286,38 @@ World::functionPointer World::stringToCommand(std::string& name){
     return mapCommands[name];
 }
 
-void World::summonOject(std::vector<std::string> params){
+Object* World::getObjectById(short int id){
+    for(int i = 0; i < objects.size(); i++){
+        if(objects[i].getId() == id){
+            return &(objects[i]);
+        }
+    }
+    throw std::runtime_error("World: getObjectById, object not found.");
+}
+
+void World::summonObject(std::vector<std::string> params){
     Model* model = stringToModel(params[0]);
     createObject(model);
+}
+void World::summonManyObjects(std::vector<std::string> params){
+    int num = std::stoi(params[0]);
+    for(int i = 0; i < num; i++){
+        Model* model = stringToModel(params[1]);
+        createObject(model);
+    }
 }
 void World::summonObjectAtPos(std::vector<std::string> params){
     Model* model = stringToModel(params[0]);
     glm::vec3 pos = stringVecToGlmVec3(params, 1); // offset by 1 as position 0 in params is taken by the object name
     createObjectAtPos(model,pos);
+}
+void World::summonManyObjectsAtPos(std::vector<std::string> params){
+    int num = std::stoi(params[0]);
+    for(int i = 0; i < num; i++){
+        Model* model = stringToModel(params[1]);
+        glm::vec3 pos = stringVecToGlmVec3(params, 2); // offset by 1 as position 0 in params is taken by the object name
+        createObjectAtPos(model,pos);
+    }
 }
 void World::listObjects(std::vector<std::string> params){
     for(int i = 0; i < modelNames.size(); i++){
@@ -267,10 +329,10 @@ void World::listObjects(std::vector<std::string> params){
     }
 }
 void World::showColliders(std::vector<std::string> params){
-    std::cout << "showColliders" << std::endl;
+    collidersAreVisible = true;
 }
 void World::hideColliders(std::vector<std::string> params){
-    std::cout << "hideColliders" << std::endl;
+    collidersAreVisible = false;
 }
 void World::saveColliders(std::vector<std::string> params){
     std::cout << "saveColliders" << std::endl;
@@ -279,7 +341,43 @@ void World::editColliders(std::vector<std::string> params){
     std::cout << "editColliders" << std::endl;
 }
 void World::selectObject(std::vector<std::string> params){
-    std::cout << "selectObject" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, framebufId);
+    glBindRenderbuffer(GL_FRAMEBUFFER, renderbufId1);
+    glClearColor(0.0,0.0,0.0,1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    for(int i = 0; i < objects.size(); i++){
+        objects[i].drawId(idShader, camera);
+    }
+    int data[0];
+    GLint x = (int)(Screen::frameBufferWidth/2);
+    GLint y = (int)(Screen::frameBufferHeight/2);
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+    glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, data);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    //char d[2];
+    //d[0] = (char)(((float)data[0])*255.0);
+    //d[1] = (char)(((float)data[1])*255.0);
+
+    //std::cout << id << std::endl;
+    //short int id = *((unsigned short*)(data));
+
+    //std::cout << id << std::endl;
+    /*Message message{
+        MessageType::DATA,
+        std::to_string(id)
+    };
+    */
+   int id = data[0];
+    if(id){
+        user.selectObject(getObjectById(id));
+    }else{
+        user.deselectObject();
+    }
+    //interface.write(message);
+}
+void World::deselectObject(std::vector<std::string> params){
+    user.deselectObject();
 }
 void World::addCollider(std::vector<std::string> params){
     std::cout << "addCollider" << std::endl;

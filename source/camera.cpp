@@ -1,9 +1,10 @@
 #include"../headers/camera.h"
 
-Camera::Camera(int width, int height, glm::vec3 position)
+Camera::Camera()
 {
-    Camera::width = width;
-    Camera::height = height;
+}
+
+void Camera::setPosition(glm::vec3 position){
     Camera::position = position;
 }
 
@@ -18,7 +19,7 @@ void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
     glm::mat4 projection = glm::mat4(1.0f);
 
     view = glm::lookAt(position, position + orientation, up);
-    projection = glm::perspective(glm::radians(FOVdeg), (float)(width/height), nearPlane, farPlane);
+    projection = glm::perspective(glm::radians(FOVdeg), (float)(Screen::windowAspect), nearPlane, farPlane);
 
     cameraMatrix = projection * view;
 }
@@ -35,7 +36,7 @@ void Camera::Inputs(GLFWwindow* window)
         }
         
         focus = !focus;
-        glfwSetCursorPos(window, (width / 2), (height / 2));
+        glfwSetCursorPos(window, (Screen::windowWidth / 2), (Screen::windowHeight / 2));
     }
 
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && mousePressed){
@@ -84,8 +85,8 @@ void Camera::Inputs(GLFWwindow* window)
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
 
-        float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
-        float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
+        float rotX = sensitivity * (float)(mouseY - (Screen::windowHeight / 2)) / Screen::windowHeight;
+        float rotY = sensitivity * (float)(mouseX - (Screen::windowWidth / 2)) / Screen::windowWidth;
 
         glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotX), glm::normalize(glm::cross(orientation, up)));
 
@@ -107,7 +108,7 @@ void Camera::Inputs(GLFWwindow* window)
 
         orientation = glm::rotate(orientation, glm::radians(-rotY), up);
 
-        glfwSetCursorPos(window, (width / 2), (height / 2));
+        glfwSetCursorPos(window, (Screen::windowWidth / 2), (Screen::windowHeight / 2));
     }
 }
 

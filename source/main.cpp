@@ -10,12 +10,8 @@
 
 #include"../headers/world.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 //void processInput(GLFWwindow *window, Interface &interface, Camera &camera);
-
-// settings
-const unsigned int width = 800;
-const unsigned int height = 600;
 
 int main()
 {
@@ -32,7 +28,7 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(width, height, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(Screen::windowWidth, Screen::windowHeight, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -40,7 +36,8 @@ int main()
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -52,16 +49,22 @@ int main()
 
 	// Introduce the window into the current context
 	glfwMakeContextCurrent(window);
+    //glViewport(0, 0, width, height);
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    //https://stackoverflow.com/questions/9264346/problems-outputting-gl-primitiveid-to-custom-frame-buffer-object-fbo
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
     // when both depth and stencil tests pass we use the reference value later
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-    World world(width, height);
+    Screen::Resize(window);
+    World world(window);
 
     // main loop
     // -----------
@@ -89,9 +92,12 @@ int main()
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
+    int w = height * Screen::windowAspect;           // w is width adjusted for aspect ratio
+    int left = (width - w) / 2;
+    glViewport(left, 0, w, height); 
+    Screen::Resize(window);
 }

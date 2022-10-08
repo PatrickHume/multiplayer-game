@@ -6,8 +6,6 @@ layout (location = 3) in vec2 aTex;
 
 out vec3 crntPos;
 out vec3 norm;
-out vec3 color;
-out vec2 texCoord;
 
 uniform mat4 camMatrix;
 uniform mat4 world;
@@ -15,16 +13,16 @@ uniform mat4 local;
 uniform mat4 model;
 uniform float outlineThickness;
 
-uniform mat4 worldRotation;
-uniform mat4 localRotation;
-uniform mat4 modelRotation;
-
 void main()
 {
+    mat4 transformMatrix = world * local * model;
+
     crntPos = vec3(world * local * model * vec4(aPos, 1.0));
-    norm = vec3(worldRotation * localRotation * modelRotation * vec4(aNormal, 1.0));
-    color = aColor;
-    texCoord = mat2(1.0, 0.0, 0.0, -1.0) * aTex;
+
+    mat3 normalMatrix = mat3(transformMatrix);
+    normalMatrix = inverse(normalMatrix);
+    normalMatrix = transpose(normalMatrix);
+    norm = normalMatrix * aNormal;
 
     gl_Position = camMatrix * vec4(crntPos + (norm*outlineThickness), 1.0);
 }

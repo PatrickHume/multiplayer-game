@@ -18,7 +18,7 @@ std::string get_file_contents(const char* filename)
 }
 
 // Constructor that build the Shader Program from 2 different shaders
-Shader::Shader(const char* vertexFile, const char* fragmentFile)
+Shader::Shader(const char* vertexFile, const char* fragmentFile, bool bindToSecond)
 {
 	// Read vertexFile and fragmentFile and store the strings
 	std::string vertexCode = get_file_contents(vertexFile);
@@ -51,6 +51,10 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	// Attach the Vertex and Fragment Shaders to the Shader Program
 	glAttachShader(ID, vertexShader);
 	glAttachShader(ID, fragmentShader);
+
+	if(bindToSecond)
+		glBindFragDataLocation(ID, 1, "FragColor");
+
 	// Wrap-up/Link all the shaders together into the Shader Program
 	glLinkProgram(ID);
 	// Checks if Shader compiled succesfully

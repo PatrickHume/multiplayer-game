@@ -36,11 +36,14 @@ class Mesh
             struct Material& material,
             glm::mat4 matrix);
 
+        void drawSimple(
+            Shader& shader, 
+            Camera& camera);
+
         void Draw(
             Shader& shader, 
             Camera& camera,
-            std::vector<Texture>& textures
-            );
+            std::vector<Texture>& textures);
 
         void drawOutline(
             Shader& outlineShader, 

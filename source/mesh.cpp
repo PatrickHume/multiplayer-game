@@ -36,6 +36,18 @@ Mesh::Mesh(
 
 }
 
+void Mesh::drawSimple(
+    Shader& shader, 
+    Camera& camera)
+{
+    shader.Activate();
+    VAO.Bind();
+
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+}
+
 void Mesh::Draw(
     Shader& shader, 
     Camera& camera,
@@ -44,20 +56,11 @@ void Mesh::Draw(
     shader.Activate();
     VAO.Bind();
 
-    // only need to bind the diffuse and specular textures.
-    // these are indexed by material.baseColorTexture and material.metallicRoughnessTexture.
-    // if either are equal to -1, apply no texture
-    //if(material.hasBaseColorTex)
-    //{
     textures[material.baseColorTexture].Bind();
     textures[material.metallicRoughnessTexture].Bind();
 
     textures[material.baseColorTexture].texUnit(shader, "diffuseTex");
     textures[material.metallicRoughnessTexture].texUnit(shader, "specularTex");
-    //}else{
-    //    textures[material.baseColorTexture].Unbind();
-    //    textures[material.metallicRoughnessTexture].Unbind();        
-    //}
 
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "modelRotation"), 1, GL_FALSE, glm::value_ptr(rotation));

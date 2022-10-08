@@ -13,34 +13,39 @@ class Model
 public:
     Model(const char* file);
 
-    void Draw(Shader& shader, Camera& camera, DrawType type = DrawType::REGULAR);
+    void Draw(Shader& shader, Camera& camera);
+    void drawOutline(Shader& shader, Camera& camera);
+    void drawId(Shader& shader, Camera& camera, int id);
+    void drawPrepOutline(Shader& shader, Camera& camera);
     void applyMatrix(glm::mat4 matrixMesh);
 
-    void applyTranslation(glm::vec3 position);
-    void applyRotation(glm::vec3 axisOrientation, float angle);
-    void applyScale(glm::vec3 scale);
-
-    void setPosition(glm::vec3 position);
-    void setQuaternion(glm::quat quaternion);
-    void setOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
-    void setScale(glm::vec3 scale);
+    //void applyTranslation(glm::vec3 position);
+    //void applyRotation(glm::vec3 axisOrientation, float angle);
+    //void applyScale(glm::vec3 scale);
+    //void setPosition(glm::vec3 position);
+    //void setQuaternion(glm::quat quaternion);
+    //void setOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
+    //void setScale(glm::vec3 scale);
+    void setTransform(glm::mat4 transform);
 
     // these are used to correct for the model we imported
     void setModelPosition(glm::vec3 position);
     void setModelOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
     void setModelScale(glm::vec3 scale);
 
-    glm::vec3 getPosition();
-    glm::quat getQuaternion();
-    glm::vec3 getScale();
+    //glm::vec3 getPosition();
+    //glm::quat getQuaternion();
+    //glm::vec3 getScale();
 
     void updateLocal();
-    void updateWorld();
+    //void updateWorld();
 
 private:
     const char* file;
     std::vector<unsigned char> data;
     json JSON;
+
+    void setUniforms(Shader& shader, Camera& camera);
 
     std::string fileStr;
     std::string fileDirectory;
@@ -55,9 +60,9 @@ private:
 
     void traverseNode(unsigned int nextNode, glm::mat4 matrix = glm::mat4(1.0f));
 
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);   
-    glm::quat quaternion = glm::mat4(1.0f);
-    glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);       
+    //glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);   
+    //glm::quat quaternion = glm::mat4(1.0f);
+    //glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);       
 
     glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::quat modelQuaternion = glm::mat4(1.0f);

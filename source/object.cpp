@@ -1,5 +1,5 @@
 #include"../headers/object.h"
-int Object::nextId = 0;
+int Object::nextId = 1;
 
 Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType){
     id = nextId++;
@@ -21,53 +21,49 @@ void Object::addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape){
     body->addCollider(shape, transform);
 }
 
-void Object::Draw(Shader& shader, Camera& camera, DrawType drawType){
-    rp3d::Transform transform   = body->getTransform();
-    rp3d::Vector3       pos     = transform.getPosition();
-    rp3d::Quaternion    ori     = transform.getOrientation();
-
-    glm::vec3 position      = glm::vec3(pos.x,pos.y,pos.z);
-    glm::quat quaternion    = glm::quat(
-        ori.w,// glm quaternions are stored w,x,y,z
-        ori.x,// whereas rp3d ones are stored x,y,z,w.
-        ori.y,
-        ori.z);
-
-    model->setPosition(position);
-    model->setQuaternion(quaternion);
-    model->setScale(glm::vec3(1.0,1.0,1.0));
-
-    // if the model is selected, prepare the stencil buffer
-    // for any draw calls with OUTLINE
-    if (drawType == DrawType::REGULAR && isSelected){
-        drawType = DrawType::PREPARE_OUTLINE;
-    }
-
-    model->Draw(shader, camera, drawType);
+void Object::setModelTransform(){
+    rp3d::Transform transform = body->getTransform();
+    glm::mat4 glmTransform;
+    transform.getOpenGLMatrix(glm::value_ptr(glmTransform));
+    model->setTransform(glmTransform);
 }
 
-void Object::DrawColliders(Shader& shader, Camera& camera, Model& cube, DrawType drawType){
+void Object::Draw(Shader& shader, Camera& camera){
+    setModelTransform();
+    if (isSelected){ // if the model is selected, prepare the stencil buffer
+        model->drawPrepOutline(shader, camera);
+    }else{
+        model->Draw(shader, camera);
+    }
+}
+
+void Object::drawOutline(Shader& outlineShader, Camera& camera){
+    setModelTransform();
+    model->drawOutline(outlineShader, camera);
+}
+
+void Object::drawColliders(Shader& shader, Camera& camera, Model& cube){
     rp3d::Transform transform   = body->getTransform();
     for (int i = 0; i < boxColliders.size(); i++){
         rp3d::Transform newTransform = boxColliders[i].transform * transform;
-
-        rp3d::Vector3       pos     = newTransform.getPosition();
-        rp3d::Quaternion    ori     = newTransform.getOrientation();
-
-        glm::vec3 position      = glm::vec3(pos.x,pos.y,pos.z);
-        glm::quat quaternion    = glm::quat(
-            ori.w,// glm quaternions are stored w,x,y,z
-            ori.x,// whereas rp3d ones are stored x,y,z,w.
-            ori.y,
-            ori.z);
-
-        cube.setPosition(position);
-        cube.setQuaternion(quaternion);
-        cube.setScale(glm::vec3(
-            boxColliders[i].halfExtents.x*2,
-            boxColliders[i].halfExtents.y*2,
-            boxColliders[i].halfExtents.z*2));
-
-        cube.Draw(shader, camera, DrawType::REGULAR);
+        glm::mat4 glmTransform;
+        newTransform.getOpenGLMatrix(glm::value_ptr(glmTransform));
+        glm::mat4 scale = glm::mat4(0.0f);
+        scale[0][0] = boxColliders[i].halfExtents.x*2;
+        scale[1][1] = boxColliders[i].halfExtents.y*2;
+        scale[2][2] = boxColliders[i].halfExtents.z*2;
+        scale[3][3] = 1.0f;
+        glmTransform = glmTransform * scale;
+        cube.setTransform(glmTransform);
+        cube.Draw(shader, camera);
     }
+}
+
+void Object::drawId(Shader& shader, Camera& camera){
+    setModelTransform();
+    model->drawId(shader, camera, id);
+}
+
+int Object::getId(){
+    return id;
 }

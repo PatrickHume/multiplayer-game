@@ -7,18 +7,25 @@
 #include"../headers/shader.h"
 #include"../headers/interface.h"
 #include"../headers/camera.h"
+#include"../headers/screen.h"
 
 class World
 {
     public:
-        World(const unsigned int width, const unsigned int height);
+        World(GLFWwindow *window);
         void ProcessInput(GLFWwindow *window);
         void Update();
         void Draw();  
         void Delete();    
         void createObject(Model* model);
         void createObjectAtPos(Model* model, glm::vec3 pos);
+        void Resize(GLFWwindow *window);
     private:
+        GLuint renderbufId0;
+        GLuint renderbufId1;
+        GLuint depthbufId;
+        GLuint framebufId;
+
         bool keyIsHeld[260] = { 0 };
         bool firstPress(GLFWwindow *window, int key);
 
@@ -27,6 +34,8 @@ class World
         // This shader is used to highlight selected objects with an outline
         Shader outlineShader;
         Shader textShader;
+
+        Shader idShader;
 
         // This is a factory module that you can use to create physics 
         // world and other objects. It is also responsible for 
@@ -62,14 +71,12 @@ class World
         double lastTime;
         int frames = 0;
 
-        int width;
-        int height;
-
         bool collidersAreVisible = false;
 
         std::vector<Object> objects;
 
         glm::vec3 stringVecToGlmVec3(std::vector<std::string>& params, int i);
+        Object* getObjectById(short int id);
 
         //make models string referenceable
         std::map<std::string, Model*> mapModels =  
@@ -83,14 +90,17 @@ class World
         typedef void (World::*functionPointer)(std::vector<std::string>);
         World::functionPointer stringToCommand(std::string& name);
         std::map<std::string, functionPointer> mapCommands =  
-        {{"summonOject", &World::summonOject}, 
+        {{"summonObject", &World::summonObject}, 
+        {"summonManyObjects", &World::summonManyObjects}, 
         {"summonObjectAtPos",  &World::summonObjectAtPos}, 
+        {"summonManyObjectsAtPos",  &World::summonManyObjectsAtPos}, 
         {"listObjects",  &World::listObjects},
         {"showColliders",  &World::showColliders},
         {"hideColliders",  &World::hideColliders},
         {"saveColliders",  &World::saveColliders},
         {"editColliders",  &World::editColliders},
         {"selectObject",  &World::selectObject},
+        {"deselectObject",  &World::deselectObject},
         {"addCollider",  &World::addCollider},
         {"delCollider",  &World::delCollider},
         {"nextCollider",  &World::nextCollider},
@@ -102,14 +112,17 @@ class World
         {"setColliderRotation",  &World::setColliderRotation},
         {"setColliderScale",  &World::setColliderScale}};
         
-        void summonOject(           std::vector<std::string> params);
+        void summonObject(          std::vector<std::string> params);
+        void summonManyObjects(     std::vector<std::string> params);
         void summonObjectAtPos(     std::vector<std::string> params);
+        void summonManyObjectsAtPos(std::vector<std::string> params);
         void listObjects(           std::vector<std::string> params);
         void showColliders(         std::vector<std::string> params);
         void hideColliders(         std::vector<std::string> params);
         void saveColliders(         std::vector<std::string> params);
         void editColliders(         std::vector<std::string> params);
         void selectObject(          std::vector<std::string> params);
+        void deselectObject(        std::vector<std::string> params);
         void addCollider(           std::vector<std::string> params);
         void delCollider(           std::vector<std::string> params);
         void nextCollider(          std::vector<std::string> params);

@@ -11,7 +11,7 @@ public:
 
     void selectObject(Object* object);
     void drawSelected(Shader& shader, Camera& camera);
-    void deselectAll();
+    void deselectObject();
 private:
     Object* selectedObject;
     bool objectIsSelected = false;

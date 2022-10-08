@@ -14,14 +14,21 @@ uniform mat4 world;
 uniform mat4 local;
 uniform mat4 model;
 
-uniform mat4 worldRotation;
-uniform mat4 localRotation;
-uniform mat4 modelRotation;
+//uniform mat4 worldRotation;
+//uniform mat4 localRotation;
+//uniform mat4 modelRotation;
 
 void main()
 {
-    crntPos = vec3(world * local * model * vec4(aPos, 1.0));
-    norm = vec3(worldRotation * localRotation * modelRotation * vec4(aNormal, 1.0));
+    mat4 transformMatrix = world * local * model;
+
+    crntPos = vec3(transformMatrix * vec4(aPos, 1.0));
+    
+    mat3 normalMatrix = mat3(transformMatrix);
+    normalMatrix = inverse(normalMatrix);
+    normalMatrix = transpose(normalMatrix);
+    norm = normalMatrix * aNormal;
+
     color = aColor;
     texCoord = mat2(1.0, 0.0, 0.0, -1.0) * aTex;
 
