@@ -18,27 +18,13 @@ public:
     void drawId(Shader& shader, Camera& camera, int id);
     void drawPrepOutline(Shader& shader, Camera& camera);
     void applyMatrix(glm::mat4 matrixMesh);
-
-    //void applyTranslation(glm::vec3 position);
-    //void applyRotation(glm::vec3 axisOrientation, float angle);
-    //void applyScale(glm::vec3 scale);
-    //void setPosition(glm::vec3 position);
-    //void setQuaternion(glm::quat quaternion);
-    //void setOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
-    //void setScale(glm::vec3 scale);
     void setTransform(glm::mat4 transform);
 
     // these are used to correct for the model we imported
     void setModelPosition(glm::vec3 position);
     void setModelOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
     void setModelScale(glm::vec3 scale);
-
-    //glm::vec3 getPosition();
-    //glm::quat getQuaternion();
-    //glm::vec3 getScale();
-
     void updateLocal();
-    //void updateWorld();
 
 private:
     const char* file;

@@ -21,57 +21,6 @@ Model::Model(const char* file)
     traverseNode(0);
     std::cout << "traversed" << std::endl;
 }
-
-//glm::vec3 Model::getPosition(){ return position;}
-//glm::quat Model::getQuaternion(){ return quaternion;}
-//glm::vec3 Model::getScale(){    return scale;}
-/*
-// apple translation
-void Model::applyTranslation(glm::vec3 position)
-{
-    Model::position = Model::position + position;
-}
-// apply rotation around axis by some radians
-void Model::applyRotation(glm::vec3 axisOrientation, float angle)
-{
-    Model::quaternion = glm::rotate(quaternion, angle, glm::normalize(axisOrientation));
-}
-// apply a scale to squash or strech the model
-void Model::applyScale(glm::vec3 scale)
-{
-    Model::scale = glm::vec3(
-        Model::scale.x*scale.x,
-        Model::scale.y*scale.y,
-        Model::scale.z*scale.z);
-}
-*/
-/*
-void Model::setPosition(glm::vec3 position)
-{
-    Model::position = position;
-}
-void Model::setQuaternion(glm::quat quaternion)
-{
-    Model::quaternion = quaternion;
-}
-void Model::setOrientation(glm::vec3 orientation, glm::vec3 up)
-{
-    //orientation = glm::normalize(orientation);
-
-    if (up == glm::vec3(0.0f,0.0f,0.0f))
-    {
-        up = glm::normalize(glm::cross(orientation, glm::vec3(0.0f,1.0f,0.0f)));
-    }
-    glm::mat4 rotMatrix = glm::lookAt(glm::vec3(0), orientation, glm::normalize(up));
-    Model::quaternion = glm::quat_cast(rotMatrix);  
-}
-*/
-/*
-void Model::setScale(glm::vec3 scale)
-{
-    Model::scale = scale;
-}
-*/
 void Model::setModelPosition(glm::vec3 position)
 {
     Model::modelPosition = position;
@@ -79,8 +28,6 @@ void Model::setModelPosition(glm::vec3 position)
 }
 void Model::setModelOrientation(glm::vec3 orientation, glm::vec3 up)
 {
-    //orientation = glm::normalize(orientation);
-
     if (up == glm::vec3(0.0f,0.0f,0.0f))
     {
         up = glm::normalize(glm::cross(orientation, glm::vec3(0.0f,1.0f,0.0f)));
@@ -94,7 +41,6 @@ void Model::setModelScale(glm::vec3 scale)
     Model::modelScale = scale;
     updateLocal();
 }
-
 void Model::updateLocal(){
     glm::mat4 trans = glm::mat4(1.0f);
     glm::mat4 rot = glm::mat4(1.0f);
@@ -106,23 +52,9 @@ void Model::updateLocal(){
 
     local = trans * rot * sca;
 }
-
 void Model::setTransform(glm::mat4 transform){
     world = transform;
 }
-/*
-void Model::updateWorld(){
-    glm::mat4 trans = glm::mat4(1.0f);
-    glm::mat4 rot = glm::mat4(1.0f);
-    glm::mat4 sca = glm::mat4(1.0f);
-
-    trans = glm::translate(trans, position);
-    rot = glm::toMat4(quaternion);
-    sca = glm::scale(sca, scale);
-
-    world = trans * rot * sca;
-}
-*/
 void Model::Draw(Shader& shader, Camera& camera)
 {
     setUniforms(shader, camera);
@@ -450,9 +382,6 @@ void Model::loadMesh(unsigned int indMesh, glm::mat4 matrix)
 
     std::vector<float> normalVec = getFloats(JSON["accessors"][normalAccInd]);
     std::vector<glm::vec3> normals = groupFloatsVec3(normalVec);
-    //for (int i = 0; i < normals.size(); i++){
-    //    normals[i] = glm::normalize(normals[i]);
-    //}
 
     std::vector<float> texVec = getFloats(JSON["accessors"][texAccInd]);
     std::vector<glm::vec2> texUVs = groupFloatsVec2(texVec);
