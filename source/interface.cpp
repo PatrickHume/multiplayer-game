@@ -3,26 +3,12 @@
 // Constructor that generates a Elements Buffer Object and links it to indices
 Interface::Interface()
 {
-    std::regex findNeumonicRegex("^[A-z]+(?=:\\s)");
-    std::regex findLabelRegex("^<[A-z0-9\\.\\s]+>(?= -> )");
-    std::regex findTypeRegex("^\\([A-z0-9\\.\\s]+\\)(?= -> )");
-
-    //std::regex findInputRegex("\\([A-z0-9\\.\\s]+\\)");
-    std::regex findSpacesRegex("\\s\\s+");
-
-    std::regex findString("string");
-    std::regex findFloat("float");
-
     // open commands.txt and separate the typeRules and the commandRulesets
     std::string line;
     std::ifstream cmdFile;
     cmdFile.open("resources/commands.txt");
     if (!cmdFile.is_open())
         throw std::runtime_error("Interface commandRulesets file could not be opened.");
-
-    std::string labelRule;  // this is the rule in its label form i.e.  summon <objectType> at <position>
-    std::string typeRule;   // this is the rule in its type form i.e.   summon (object) at (float) (float) (float)
-    std::string regexRule;  // this is the rule in its regex form i.e.  summon [lada|cube] at (\.\d+)|\d+(\.\d+)? (\.\d+)|\d+(\.\d+)? (\.\d+)|\d+(\.\d+)?
        
     // cycle through command.txt lines and classify lines
     while (getline (cmdFile,line))

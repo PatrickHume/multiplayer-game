@@ -10,9 +10,6 @@
 #include "textRenderer.h"
 #include "camera.h"
 
-enum class ObjectID {   LADA,
-                        CUBE};
-
 enum class MessageType {REGULAR,
                         DATA,
                         ERROR};
@@ -63,6 +60,13 @@ public:
     Camera* camera;
 
 private:
+    const std::regex findNeumonicRegex    = std::regex("^[A-z]+(?=:\\s)");
+    const std::regex findLabelRegex       = std::regex("^<[A-z0-9\\.\\s]+>(?= -> )");
+    const std::regex findTypeRegex        = std::regex("^\\([A-z0-9\\.\\s]+\\)(?= -> )");
+    const std::regex findSpacesRegex      = std::regex("\\s\\s+");
+    const std::regex findString           = std::regex("string");
+    const std::regex findFloat            = std::regex("float");
+
     std::map<MessageType, glm::vec3> mapMsgTypeToCol = {
         {MessageType::REGULAR,  glm::vec3(0.85f, 0.85f, 0.85f)},
         {MessageType::DATA,     glm::vec3(0.19f, 0.94f, 1.0f)},
@@ -73,6 +77,7 @@ private:
         {MessageType::DATA,     "    "},
         {MessageType::ERROR,    "Error: "}
     };
+
     std::vector<std::pair<std::regex, std::string>> typeRules;
     std::vector<std::pair<std::regex, std::string>> regexRules;
     std::vector<CommandRuleset> commandRulesets;
