@@ -46,7 +46,7 @@ Interface::Interface()
                 throw std::runtime_error("Interface found illegal command rule in type");
             // this monstorous line takes a string such as "(float)"
             // and turns it into "\(float\)", so it will match "(float)" when used as a regular expression
-            std::regex findResult(regex_replace(regex_replace(findMatch.str(0),std::regex("\\("),"\\\("),std::regex("\\)"),"\\\)").c_str());
+            std::regex findResult(regex_replace(regex_replace(findMatch.str(0),std::regex("\\("),"\\("),std::regex("\\)"),"\\)").c_str());
             // + 4 is to take into account the " -> " used in rule setting
             std::string replaceWith = line.substr(findMatch.position() + 4 + findMatch.length());
             regexRules.push_back(std::pair<std::regex, std::string>(findResult,replaceWith));
