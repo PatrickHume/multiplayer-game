@@ -170,14 +170,14 @@ void Interface::Draw(TextRenderer &textRenderer, Shader &textShader, double time
 
     if(cmdLineOpen){
         textRenderer.renderText(textShader, cmdInput + (fmod(time,1.0) > 0.5 ? "_":""), x, y, s, glm::vec3(1.0f, 1.0f, 1.0f));
-        for (int i = 0; i < cmdHistory.size(); i++){
+        int numLines = std::min<int>(cmdHistory.size(),9);
+        for (int i = 1; i <= numLines; i++){
+            int pos = cmdHistory.size() -i;
             textRenderer.renderText(
                 textShader, 
-                mapMsgTypeToPrefix[cmdHistory[i].messageType] + cmdHistory[i].messageText, 
-                x, 
-                y+((cmdHistory.size()-i)*h), 
-                s, 
-                mapMsgTypeToCol[cmdHistory[i].messageType]);
+                mapMsgTypeToPrefix[cmdHistory[pos].messageType] + cmdHistory[pos].messageText, 
+                x, y+((i)*h), s, 
+                mapMsgTypeToCol[cmdHistory[pos].messageType]);
         }
     }
 }
