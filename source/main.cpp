@@ -8,6 +8,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#ifdef PROFILE
+#include <gperftools/profiler.h>
+#endif // PROFILE
+
 #include"../headers/world.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
@@ -68,6 +72,9 @@ int main()
 
     // main loop
     // -----------
+    #ifdef PROFILE
+    ProfilerStart("output.pprof");
+    #endif // PROFILE
     while (!glfwWindowShouldClose(window))
     {
         world.ProcessInput(window);
@@ -80,6 +87,9 @@ int main()
 		// Take care of all GLFW events
 		glfwPollEvents();
     }
+    #ifdef PROFILE
+    ProfilerStop();
+    #endif // PROFILE
 
     world.Delete();
     	// Delete window before ending the program

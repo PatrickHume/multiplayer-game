@@ -35,6 +35,7 @@
 *.dSYM/
 *.code-workspace
 app
+test
 commitlint.config.js
 .husky/commit-msg
 
@@ -43,6 +44,8 @@ commitlint.config.js
 *.jpeg
 *.bin
 *.gltf
+*.gz
+*.pprof
 
 models
 tests
