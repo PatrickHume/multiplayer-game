@@ -30,6 +30,7 @@ public:
     void sendPosition(Shader& shader, const char* uniform);
     void Inputs(GLFWwindow* window);
     glm::vec3 getPositionInFront(float dist = 5);
+    glm::vec3 getOrientation();
 private:
     // The position of the camera.
 	glm::vec3 position;

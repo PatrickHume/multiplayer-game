@@ -1,7 +1,11 @@
 #include"../headers/model.h"
 
+std::vector<Model*> Model::models = {};
+
 Model::Model(const char* file)
 {   
+    Model::models.push_back(this);
+
     std::string text = get_file_contents(file);
     JSON = json::parse(text);
 
@@ -52,9 +56,45 @@ void Model::updateLocal(){
 
     local = trans * rot * sca;
 }
+
 void Model::setTransform(glm::mat4 transform){
     world = transform;
 }
+
+void Model::prepareInstance(glm::mat4 transform){
+    glm::mat4 matrix = transform * local;
+    if(instanceIndex >= instanceMatrices.size()){
+        instanceMatrices.push_back(matrix);
+    }else{
+        instanceMatrices[instanceIndex] = matrix;
+    }
+    instanceIndex++;
+}
+
+void Model::drawInstanced(Shader& shader, Shader& instancedShader, Camera& camera)
+{  
+    instanceIndex = 0;
+    if(numInstances >= instancingThreshold){
+        instancedShader.Activate();
+        camera.sendMatrix(instancedShader, "camMatrix");
+        camera.sendPosition(instancedShader, "camPos");
+        for (unsigned int i = 0; i < meshes.size(); i++){
+            meshes[i].setInstanceMatrices(instanceMatrices);
+            meshes[i].drawInstanced(instancedShader, camera, textures, numInstances);
+        }
+    }else{
+        shader.Activate();
+        camera.sendMatrix(shader, "camMatrix");
+        camera.sendPosition(shader, "camPos");
+        for(int i = 0; i < numInstances; i++){
+            glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
+            for (unsigned int i = 0; i < meshes.size(); i++){
+                meshes[i].Mesh::Draw(shader, camera, textures);
+            }            
+        }
+    }
+} 
+
 void Model::Draw(Shader& shader, Camera& camera)
 {
     setUniforms(shader, camera);
@@ -501,4 +541,11 @@ std::vector<glm::vec4> Model::groupFloatsVec4(std::vector<float> floatVec)
 		vectors.push_back(glm::vec4(floatVec[i], floatVec[i+1], floatVec[i+2], floatVec[i+3]));
 	}
 	return vectors;
+}
+
+void Model::addInstance(){
+    numInstances++;
+}
+void Model::delInstance(){
+    numInstances--;
 }

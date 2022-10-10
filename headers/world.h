@@ -18,7 +18,8 @@ class World
         void Draw();  
         void Delete();    
         void createObject(Model* model);
-        void createObjectAtPos(Model* model, glm::vec3 pos);
+        void createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel = glm::vec3(0.0,0.0,0.0));
+        void fireObject(Model* model, float scalar = 10.0f);
         void Resize(GLFWwindow *window);
     private:
         GLuint renderbufId0;
@@ -31,6 +32,7 @@ class World
 
         // Generates Shader object using shaders defualt.vert and default.frag
         Shader defaultShader;
+        Shader instancedShader;
         // This shader is used to highlight selected objects with an outline
         Shader outlineShader;
         Shader textShader;

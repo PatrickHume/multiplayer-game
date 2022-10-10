@@ -4,6 +4,7 @@ int Object::nextId = 1;
 Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType){
     id = nextId++;
     Object::model = model;
+    model->addInstance();
 
     Object::physicsWorld = physicsWorld;
     rp3d::Vector3       position(0, 0, 0); 
@@ -19,6 +20,13 @@ void Object::addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape){
     collider.transform = transform;
     boxColliders.push_back(collider);
     body->addCollider(shape, transform);
+}
+
+void Object::prepareInstance(){
+    rp3d::Transform transform = body->getTransform();
+    glm::mat4 glmTransform;
+    transform.getOpenGLMatrix(glm::value_ptr(glmTransform));
+    model->prepareInstance(glmTransform);
 }
 
 void Object::setModelTransform(){
@@ -66,4 +74,8 @@ void Object::drawId(Shader& shader, Camera& camera){
 
 int Object::getId(){
     return id;
+}
+
+void Object::Delete(){
+    model->delInstance();
 }

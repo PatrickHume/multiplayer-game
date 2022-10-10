@@ -2,6 +2,7 @@
 
 World::World(GLFWwindow *window) : 
 defaultShader("resources/shaders/default.vert","resources/shaders/default.frag"),
+instancedShader("resources/shaders/instanced.vert","resources/shaders/default.frag"),
 outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag"),
 textShader("resources/shaders/text.vert","resources/shaders/text.frag"),
 idShader("resources/shaders/id.vert","resources/shaders/id.frag",true),
@@ -117,6 +118,10 @@ floorModel("resources/models/plane/scene.gltf")
 	glUniform4f(glGetUniformLocation(defaultShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(defaultShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
+	instancedShader.Activate();
+	glUniform4f(glGetUniformLocation(instancedShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(instancedShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+
     //timer for physics
     double lastPhysicsTime = glfwGetTime();
     //timer for framerate
@@ -124,13 +129,15 @@ floorModel("resources/models/plane/scene.gltf")
     
 }
 
-void World::createObjectAtPos(Model* model, glm::vec3 pos){
+void World::createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel){
     rp3d::Vector3 position(pos.x, pos.y, pos.z); 
+    rp3d::Vector3 velocity(vel.x, vel.y, vel.z); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation); 
 
     Object object(physicsWorld, model, rp3d::BodyType::DYNAMIC);
     object.body->setTransform(transform);
+    object.body->setLinearVelocity(velocity);
 
     rp3d::Vector3       boxHalfExtents = rp3d::Vector3(0.5f,0.5f,0.5f);
     rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,0.0f,0.0f);
@@ -155,9 +162,18 @@ void World::createObject(Model* model){
     createObjectAtPos(model, pos);
 }
 
+void World::fireObject(Model* model, float scalar){
+    glm::vec3 pos = camera.getPositionInFront(20.0f);
+    glm::vec3 vel = camera.getOrientation()*scalar;
+    createObjectAtPos(model, pos, vel);
+}
+
 void World::ProcessInput(GLFWwindow *window){
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && camera.focus && !camera.locked)
+        fireObject(&cubeModel, 20.0f);
 
     if (firstPress(window, GLFW_KEY_GRAVE_ACCENT) && camera.focus)
     {
@@ -226,8 +242,13 @@ void World::Draw(){
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
         
         for(int i = 0; i < objects.size(); i++){
-            objects[i].Draw(defaultShader, camera);
-            if(collidersAreVisible){
+            objects[i].prepareInstance();
+        }
+        for(int i = 0; i < Model::models.size(); i++){
+            Model::models[i]->drawInstanced(defaultShader, instancedShader, camera);
+        }        
+        if(collidersAreVisible){
+            for(int i = 0; i < objects.size(); i++){
                 objects[i].drawColliders(defaultShader, camera, cubeModel);
             }
         }

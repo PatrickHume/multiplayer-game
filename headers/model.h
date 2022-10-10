@@ -13,6 +13,7 @@ class Model
 public:
     Model(const char* file);
 
+    void drawInstanced(Shader& shader, Shader& instancedShader, Camera& camera);
     void Draw(Shader& shader, Camera& camera);
     void drawOutline(Shader& shader, Camera& camera);
     void drawId(Shader& shader, Camera& camera, int id);
@@ -25,11 +26,20 @@ public:
     void setModelOrientation(glm::vec3 orientation, glm::vec3 up = glm::vec3(0.0f,0.0f,0.0f));
     void setModelScale(glm::vec3 scale);
     void updateLocal();
+    void addInstance();
+    void delInstance();
+    void prepareInstance(glm::mat4 transform);
 
+    static std::vector<Model*> models;
 private:
     const char* file;
     std::vector<unsigned char> data;
     json JSON;
+
+    const int instancingThreshold = 50;
+    unsigned int numInstances;
+    int instanceIndex = 0;
+    std::vector<glm::mat4> instanceMatrices;
 
     void setUniforms(Shader& shader, Camera& camera);
 

@@ -118,7 +118,7 @@ void Camera::Inputs(GLFWwindow* window)
 
         // Looking left/right:
         // Get the resultant direction vector by rotating the camera about the Y axis.
-        orientation = glm::rotate(orientation, glm::radians(-rotY), up);
+        orientation = normalize(glm::rotate(orientation, glm::radians(-rotY), up));
 
         // Reset the cursor position to the middle of the screen. 
         // (To prevent it leaving the window over time.)
@@ -128,4 +128,8 @@ void Camera::Inputs(GLFWwindow* window)
 // Returns the position vector "dist" units infront of the camera.
 glm::vec3 Camera::getPositionInFront(float dist){
     return position + orientation*dist;
+}
+// Returns the direction vector representing the orientation of the camera.
+glm::vec3 Camera::getOrientation(){
+    return orientation;
 }

@@ -25,7 +25,9 @@ class Object
         void drawColliders(Shader& shader, Camera& camera, Model& cube);
         void drawId(Shader& shader, Camera& camera);
         void addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape);
+        void prepareInstance();
         int getId();
+        void Delete();
     private:
         static int nextId;
         int id;
