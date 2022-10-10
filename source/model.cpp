@@ -2,11 +2,15 @@
 
 std::vector<Model*> Model::models = {};
 
-Model::Model(const char* file)
+Model::Model()
+{   
+}
+
+void Model::Load(const char* file)
 {   
     Model::models.push_back(this);
 
-    std::string text = get_file_contents(file);
+    std::string text = getFileContents(file);
     JSON = json::parse(text);
 
     fileStr = std::string(file);
@@ -25,6 +29,7 @@ Model::Model(const char* file)
     traverseNode(0);
     std::cout << "traversed" << std::endl;
 }
+
 void Model::setModelPosition(glm::vec3 position)
 {
     Model::modelPosition = position;
@@ -155,7 +160,7 @@ std::vector<unsigned char> Model::getData()
 
     std::cout << fileDirectory.c_str() << std::endl;
     std::cout << (fileDirectory + uri).c_str() << std::endl;
-    bytesText = get_file_contents((fileDirectory + uri).c_str());
+    bytesText = getFileContents((fileDirectory + uri).c_str());
 
     std::cout << "2" << std::endl;
 

@@ -11,7 +11,9 @@ using json = nlohmann::json;
 class Model
 {
 public:
-    Model(const char* file);
+    Model();
+
+    void Load(const char* file);
 
     void drawInstanced(Shader& shader, Shader& instancedShader, Camera& camera);
     void Draw(Shader& shader, Camera& camera);

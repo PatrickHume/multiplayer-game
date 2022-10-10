@@ -14,7 +14,7 @@ int Screen::frameBufferHeight   = 0;
 float Screen::windowAspect = (float)Screen::windowWidth/Screen::windowHeight;
 
 // Screen holds the values related to the window dimensions.
-// It is mostly acessed to find the center of the screen.
+// It is mostly acessed to find the center of the screen throughout the program.
 Screen::Screen(){   
 };
 

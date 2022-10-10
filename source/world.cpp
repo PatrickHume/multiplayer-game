@@ -1,27 +1,26 @@
 #include"../headers/world.h"
 
-World::World(GLFWwindow *window) : 
-defaultShader("resources/shaders/default.vert","resources/shaders/default.frag"),
-blankShader("resources/shaders/blank.vert","resources/shaders/blank.frag"),
-instancedShader("resources/shaders/instanced.vert","resources/shaders/default.frag"),
-outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag"),
-textShader("resources/shaders/text.vert","resources/shaders/text.frag"),
-idShader("resources/shaders/id.vert","resources/shaders/id.frag",true),
-ladaModel("resources/models/lada/scene.gltf"),
-cubeModel("resources/models/cube/scene.gltf"),
-floorModel("resources/models/plane/scene.gltf")
+// World loads and stores many of the game assets.
+// It is also where most of the game logic happens.
+World::World(GLFWwindow *window)
 {
+    defaultShader.Load(   "resources/shaders/default.vert",   "resources/shaders/default.frag");
+    blankShader.Load(     "resources/shaders/blank.vert",     "resources/shaders/blank.frag");
+    instancedShader.Load( "resources/shaders/instanced.vert", "resources/shaders/default.frag");
+    outlineShader.Load(   "resources/shaders/outline.vert",   "resources/shaders/outline.frag");
+    textShader.Load(      "resources/shaders/text.vert",      "resources/shaders/text.frag");
+    idShader.Load(        "resources/shaders/id.vert",        "resources/shaders/id.frag");
+
+    ladaModel.Load(   "resources/models/lada/scene.gltf");
+    cubeModel.Load(   "resources/models/cube/scene.gltf");
+    floorModel.Load(  "resources/models/plane/scene.gltf");
+
     camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
     
     // generate render and frame buffer objects
-    glGenRenderbuffers( 1, &renderbufId0 );
     glGenRenderbuffers( 1, &renderbufId1 );
     glGenRenderbuffers( 1, &depthbufId   );
     glGenFramebuffers ( 1, &framebufId   );
-
-    // setup first renderbuffer (fragColor)
-    glBindRenderbuffer(GL_RENDERBUFFER, renderbufId0);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, Screen::frameBufferWidth, Screen::frameBufferHeight);
 
     // setup second renderbuffer (triID)
     glBindRenderbuffer(GL_RENDERBUFFER, renderbufId1);
@@ -33,7 +32,6 @@ floorModel("resources/models/plane/scene.gltf")
 
     // setup framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, framebufId);  
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderbufId0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, renderbufId1);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,  GL_RENDERBUFFER, depthbufId  );
     glEnable(GL_DEPTH_TEST);
@@ -43,8 +41,8 @@ floorModel("resources/models/plane/scene.gltf")
     if(stat != GL_FRAMEBUFFER_COMPLETE) { exit(0); }
 
     // setup color attachments
-    const GLenum att[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-    glDrawBuffers(2, att);
+    const GLenum att[] = {GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(1, att);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -163,9 +161,9 @@ void World::createObject(Model* model){
     createObjectAtPos(model, pos);
 }
 
-void World::fireObject(Model* model, float scalar){
+void World::fireObject(Model* model, float speed){
     glm::vec3 pos = camera.getPositionInFront(20.0f);
-    glm::vec3 vel = camera.getOrientation()*scalar;
+    glm::vec3 vel = camera.getOrientation()*speed;
     createObjectAtPos(model, pos, vel);
 }
 
@@ -274,7 +272,6 @@ void World::Delete(){
 	defaultShader.Delete();
 
     glDeleteFramebuffers(1, &framebufId);
-    glDeleteRenderbuffers(1, &renderbufId0);
     glDeleteRenderbuffers(1, &renderbufId1);
 }
 

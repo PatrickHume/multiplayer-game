@@ -1,7 +1,7 @@
 #include"../headers/shader.h"
 
-// Reads a text file and outputs a string with everything in the text file
-std::string get_file_contents(const char* filename)
+// Reads a text file and outputs its contents to a string.
+std::string getFileContents(const char* filename)
 {
 	std::ifstream in(filename, std::ios::binary);
 	if (in)
@@ -17,90 +17,92 @@ std::string get_file_contents(const char* filename)
 	throw(errno);
 }
 
-// Constructor that build the Shader Program from 2 different shaders
-Shader::Shader(const char* vertexFile, const char* fragmentFile, bool bindToSecond)
+// The default constructor is empty as shaders are defined as attributes in World.
+Shader::Shader()
 {
-	// Read vertexFile and fragmentFile and store the strings
-	std::string vertexCode = get_file_contents(vertexFile);
-	std::string fragmentCode = get_file_contents(fragmentFile);
+}
 
-	// Convert the shader source strings into character arrays
+// Loads both a vertex shader and a fragment shader and creates a shader program.
+void Shader::Load(const char* vertexFile, const char* fragmentFile)
+{
+	// Store the contents of each file.
+	std::string vertexCode = getFileContents(vertexFile);
+	std::string fragmentCode = getFileContents(fragmentFile);
+	// Convert into char arrays for passing to OpenGL.
 	const char* vertexSource = vertexCode.c_str();
 	const char* fragmentSource = fragmentCode.c_str();
 
-	// Create Vertex Shader Object and get its reference
+	// Create a vertex shader object.
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	// Attach Vertex Shader source to the Vertex Shader Object
+	// Attach the vertex shader data to the shader object.
 	glShaderSource(vertexShader, 1, &vertexSource, NULL);
-	// Compile the Vertex Shader into machine code
+	// Compile the shader.
 	glCompileShader(vertexShader);
-	// Checks if Shader compiled succesfully
-	compileErrors(vertexShader, "VERTEX");
+	// Check for compilation errors.
+	checkForCompileErrors(vertexShader, "VERTEX");
 
-	// Create Fragment Shader Object and get its reference
+	// Create a fragment shader object.
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	// Attach Fragment Shader source to the Fragment Shader Object
+	// Attach the fragment shader data to the shader object.
 	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-	// Compile the Vertex Shader into machine code
+	// Compile the shader.
 	glCompileShader(fragmentShader);
-	// Checks if Shader compiled succesfully
-	compileErrors(fragmentShader, "FRAGMENT");
+	// Check for compilation errors.
+	checkForCompileErrors(fragmentShader, "FRAGMENT");
 
-	// Create Shader Program Object and get its reference
+	// Create a shader program.
 	ID = glCreateProgram();
-	// Attach the Vertex and Fragment Shaders to the Shader Program
+	// Attach the shaders to the shader program.
 	glAttachShader(ID, vertexShader);
 	glAttachShader(ID, fragmentShader);
 
-	if(bindToSecond)
-		glBindFragDataLocation(ID, 1, "FragColor");
-
-	// Wrap-up/Link all the shaders together into the Shader Program
+	// Link the shaders together in the program.
 	glLinkProgram(ID);
-	// Checks if Shader compiled succesfully
-	compileErrors(ID, "PROGRAM");    
+	// Check for compilation errors.
+	checkForCompileErrors(ID, "PROGRAM");    
 
-	// Delete the now useless Vertex and Fragment Shader objects
+	// Delete the vertex and fragment shader objects now
+	// the shader program has been made.
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-
 }
 
-// Activates the Shader Program
+// Activates the shader program.
 void Shader::Activate()
 {
 	glUseProgram(ID);
 }
 
-// Deletes the Shader Program
+// Deletes the shader program.
 void Shader::Delete()
 {
 	glDeleteProgram(ID);
 }
 
-// Checks if the different Shaders have compiled properly
-void Shader::compileErrors(unsigned int shader, const char* type)
+// Checks a shader/shader program for compile errors.
+void Shader::checkForCompileErrors(unsigned int shader, const char* type)
 {
-	// Stores status of compilation
+	// Stores status of compilation.
 	GLint hasCompiled;
-	// Character array to store error message in
+	// Char array to store error message in.
 	char infoLog[1024];
-	if (type != "PROGRAM")
-	{
+	// If type is vertex shader or fragment shader:
+	if (strncmp(type,"PROGRAM",8) != 0)
+	{// Check for errors in shader compiling.
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &hasCompiled);
 		if (hasCompiled == GL_FALSE)
-		{
+		{// Get and output the shader info log.
 			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "SHADER_COMPILATION_ERROR for:" << type << "\n" << infoLog << std::endl;
+			std::cout << "SHADER_COMPILATION_ERROR for: " << type << "\n" << infoLog << std::endl;
 		}
 	}
-	else
-	{
+	else // If type is program:
+	{// Check for errors in shaders linking in program.
 		glGetProgramiv(shader, GL_LINK_STATUS, &hasCompiled);
 		if (hasCompiled == GL_FALSE)
-		{
+		{// Get and output the program info log.
 			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "SHADER_LINKING_ERROR for:" << type << "\n" << infoLog << std::endl;
+			std::cout << "SHADER_LINKING_ERROR for: " << type << "\n" << infoLog << std::endl;
 		}
 	}
 }

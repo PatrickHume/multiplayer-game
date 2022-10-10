@@ -19,7 +19,7 @@ class World
         void Delete();    
         void createObject(Model* model);
         void createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel = glm::vec3(0.0,0.0,0.0));
-        void fireObject(Model* model, float scalar = 10.0f);
+        void fireObject(Model* model, float speed = 10.0f);
         void Resize(GLFWwindow *window);
     private:
         GLuint renderbufId0;

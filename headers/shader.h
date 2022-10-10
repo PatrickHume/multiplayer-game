@@ -8,22 +8,25 @@
 #include<iostream>
 #include<cerrno>
 
-std::string get_file_contents(const char* filename);
+// Reads a text file and outputs its contents to a string.
+std::string getFileContents(const char* filename);
 
+// Shader loads shader programs from input files.
+// The shaders are activated before rendering.
 class Shader
 {
 public:
-	// Reference ID of the Shader Program
-	GLuint ID;
-	// Constructor that build the Shader Program from 2 different shaders
-	Shader(const char* vertexFile, const char* fragmentFile, bool bindToSecond = false);
-
-	// Activates the Shader Program
+	Shader();
+	// Loads both a vertex shader and a fragment shader and creates a shader program.
+	void Load(const char* vertexFile, const char* fragmentFile);
+	// Activates the shader program.
 	void Activate();
-	// Deletes the Shader Program
+	// Deletes the shader program.
 	void Delete();
+	// Reference ID for the shader program
+	GLuint ID;
 private:
-	// Checks if the different Shaders have compiled properly
-	void compileErrors(unsigned int shader, const char* type);
+	// Checks a shader/shader program for compile errors.
+	void checkForCompileErrors(unsigned int shader, const char* type);
 };
 #endif
