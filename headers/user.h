@@ -10,8 +10,9 @@ public:
 	User();
 
     void selectObject(Object* object);
-    void drawSelected(Shader& shader, Camera& camera);
+    Object* getSelectedObject();
     void deselectObject();
+    bool hasSelectedObject();
 private:
     Object* selectedObject;
     bool objectIsSelected = false;

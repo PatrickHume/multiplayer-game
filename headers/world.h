@@ -32,6 +32,7 @@ class World
 
         // Generates Shader object using shaders defualt.vert and default.frag
         Shader defaultShader;
+        Shader blankShader;
         Shader instancedShader;
         // This shader is used to highlight selected objects with an outline
         Shader outlineShader;

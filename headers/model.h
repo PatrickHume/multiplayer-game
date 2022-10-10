@@ -15,11 +15,10 @@ public:
 
     void drawInstanced(Shader& shader, Shader& instancedShader, Camera& camera);
     void Draw(Shader& shader, Camera& camera);
-    void drawOutline(Shader& shader, Camera& camera);
+    void drawOutline(Shader& outlineShader, Camera& camera);
     void drawId(Shader& shader, Camera& camera, int id);
     void drawPrepOutline(Shader& shader, Camera& camera);
-    void applyMatrix(glm::mat4 matrixMesh);
-    void setTransform(glm::mat4 transform);
+    void setTransform(glm::mat4& transform);
 
     // these are used to correct for the model we imported
     void setModelPosition(glm::vec3 position);
@@ -28,7 +27,7 @@ public:
     void updateLocal();
     void addInstance();
     void delInstance();
-    void prepareInstance(glm::mat4 transform);
+    void prepareInstance(glm::mat4& transform);
 
     static std::vector<Model*> models;
 private:
@@ -66,12 +65,12 @@ private:
 
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
-    // local is a combination of modelPosition, modelScale, facing modelOrientation,
+    // modelTransform is a combination of modelPosition, modelScale, facing modelOrientation,
     // this should be the fixed and relative to the design of the model.
-    glm::mat4 local = glm::mat4(1.0f);
+    glm::mat4 modelTransform = glm::mat4(1.0f);
     // world is a combination of position, scale and quaternion.
     // this will change throughout runtime - using quaternions prevents us from gimbal lock.
-    glm::mat4 world = glm::mat4(1.0f);
+    glm::mat4 transform = glm::mat4(1.0f);
 
     std::vector<unsigned char> getData();
     std::vector<float> getFloats(json accessor);

@@ -8,16 +8,15 @@ out vec3 crntPos;
 out vec3 norm;
 
 uniform mat4 camMatrix;
-uniform mat4 world;
-uniform mat4 local;
+uniform mat4 transform;
 uniform mat4 model;
 uniform float outlineThickness;
 
 void main()
 {
-    mat4 transformMatrix = world * local * model;
+    mat4 transformMatrix = transform * model;
 
-    crntPos = vec3(world * local * model * vec4(aPos, 1.0));
+    crntPos = vec3(transformMatrix * vec4(aPos, 1.0));
 
     mat3 normalMatrix = mat3(transformMatrix);
     normalMatrix = inverse(normalMatrix);

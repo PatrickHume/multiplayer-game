@@ -22,32 +22,27 @@ void Object::addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape){
     body->addCollider(shape, transform);
 }
 
-void Object::prepareInstance(){
-    rp3d::Transform transform = body->getTransform();
-    glm::mat4 glmTransform;
-    transform.getOpenGLMatrix(glm::value_ptr(glmTransform));
-    model->prepareInstance(glmTransform);
+const rp3d::Transform& Object::getRP3DTransform(){
+    return body->getTransform();
 }
 
-void Object::setModelTransform(){
-    rp3d::Transform transform = body->getTransform();
-    glm::mat4 glmTransform;
-    transform.getOpenGLMatrix(glm::value_ptr(glmTransform));
-    model->setTransform(glmTransform);
+glm::mat4& Object::getGLMTransform(){
+    getRP3DTransform().getOpenGLMatrix(glm::value_ptr(glmTransform));    
+    return glmTransform;
 }
 
 void Object::Draw(Shader& shader, Camera& camera){
-    setModelTransform();
-    if (isSelected){ // if the model is selected, prepare the stencil buffer
-        model->drawPrepOutline(shader, camera);
-    }else{
-        model->Draw(shader, camera);
-    }
+    model->Draw(shader, camera);
 }
 
-void Object::drawOutline(Shader& outlineShader, Camera& camera){
-    setModelTransform();
-    model->drawOutline(outlineShader, camera);
+Model* Object::getModel(){
+    return model;
+}
+
+void Object::drawOutline(Shader& blankShader, Shader& outlineShader, Camera& camera){
+    model->setTransform(    getGLMTransform());
+    model->drawPrepOutline( blankShader, camera);
+    model->drawOutline(     outlineShader, camera);
 }
 
 void Object::drawColliders(Shader& shader, Camera& camera, Model& cube){
@@ -68,7 +63,6 @@ void Object::drawColliders(Shader& shader, Camera& camera, Model& cube){
 }
 
 void Object::drawId(Shader& shader, Camera& camera){
-    setModelTransform();
     model->drawId(shader, camera, id);
 }
 

@@ -113,18 +113,3 @@ void Mesh::Draw(
 
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
-
-void Mesh::drawOutline(
-    Shader& outlineShader, 
-    Camera& camera,
-    std::vector<Texture>& textures
-){
-    outlineShader.Activate();
-    VAO.Bind();
-    // this could be in next class up...
-    glUniform1f(glGetUniformLocation(outlineShader.ID, "outlineThickness"), 0.05f);
-    
-    glUniformMatrix4fv(glGetUniformLocation(outlineShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
-    glUniformMatrix4fv(glGetUniformLocation(outlineShader.ID, "modelRotation"), 1, GL_FALSE, glm::value_ptr(rotation));
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-}

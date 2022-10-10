@@ -54,11 +54,6 @@ class Mesh
             Camera& camera,
             std::vector<Texture>& textures);
 
-        void drawOutline(
-            Shader& outlineShader, 
-            Camera& camera,
-            std::vector<Texture>& textures);
-
         void setInstanceMatrices(std::vector<glm::mat4>& matrices);
     private:
 };

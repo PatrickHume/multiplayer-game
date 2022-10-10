@@ -54,15 +54,15 @@ void Model::updateLocal(){
     rot = glm::toMat4(modelQuaternion);
     sca = glm::scale(sca, modelScale);
 
-    local = trans * rot * sca;
+    modelTransform = trans * rot * sca;
 }
 
-void Model::setTransform(glm::mat4 transform){
-    world = transform;
+void Model::setTransform(glm::mat4& transform){
+    Model::transform = transform;
 }
 
-void Model::prepareInstance(glm::mat4 transform){
-    glm::mat4 matrix = transform * local;
+void Model::prepareInstance(glm::mat4& transform){
+    glm::mat4 matrix = transform * modelTransform;
     if(instanceIndex >= instanceMatrices.size()){
         instanceMatrices.push_back(matrix);
     }else{
@@ -90,7 +90,7 @@ void Model::drawInstanced(Shader& shader, Shader& instancedShader, Camera& camer
             glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
             for (unsigned int i = 0; i < meshes.size(); i++){
                 meshes[i].Mesh::Draw(shader, camera, textures);
-            }            
+            }
         }
     }
 } 
@@ -103,14 +103,18 @@ void Model::Draw(Shader& shader, Camera& camera)
     }
 } 
 
-void Model::drawPrepOutline(Shader& shader, Camera& camera)
+void Model::drawPrepOutline(Shader& blankShader, Camera& camera)
 {
-    setUniforms(shader, camera);
+    setUniforms(blankShader, camera);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glStencilMask(0xFF);
+    glDisable(GL_DEPTH_TEST);
+    glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
     for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::Draw(shader, camera, textures);
+        meshes[i].Mesh::drawSimple(blankShader, camera);
     }
+    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
     glStencilMask(0x00);
 }
 
@@ -122,11 +126,12 @@ void Model::drawId(Shader& shader, Camera& camera, int id){
     }
 }
 
-void Model::drawOutline(Shader& shader, Camera& camera){
-    setUniforms(shader, camera);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);        
+void Model::drawOutline(Shader& outlineShader, Camera& camera){
+    setUniforms(outlineShader, camera);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glUniform1f(glGetUniformLocation(outlineShader.ID, "outlineThickness"), 0.05f);
     for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::drawOutline(shader, camera, textures);
+        meshes[i].Mesh::drawSimple(outlineShader, camera);
     }
     glStencilMask(0xFF);
     glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -136,8 +141,8 @@ void Model::setUniforms(Shader& shader, Camera& camera){
     shader.Activate();
     camera.sendMatrix(shader, "camMatrix");
     camera.sendPosition(shader, "camPos");
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "world"), 1, GL_FALSE, glm::value_ptr(world));
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "local"), 1, GL_FALSE, glm::value_ptr(local));
+    glm::mat4 matrix = transform * modelTransform;
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 std::vector<unsigned char> Model::getData()

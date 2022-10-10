@@ -6,23 +6,18 @@ User::User(){
 }
 
 void User::selectObject(Object* object){
-    if(objectIsSelected){
-        selectedObject->isSelected = false;
-    }
     objectIsSelected = true;
     selectedObject = object;
-    selectedObject->isSelected = true;
 }
 
-void User::drawSelected(Shader& outlineShader, Camera& camera){
-    if(objectIsSelected){
-        selectedObject->drawOutline(outlineShader, camera);
-    }
+Object* User::getSelectedObject(){
+    return selectedObject;
+}
+
+bool User::hasSelectedObject(){
+    return objectIsSelected;
 }
 
 void User::deselectObject(){
-    if(objectIsSelected){
-        selectedObject->isSelected = false;
-        objectIsSelected = false;
-    }
+    objectIsSelected = false;
 }

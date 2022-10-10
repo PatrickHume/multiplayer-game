@@ -2,6 +2,7 @@
 
 World::World(GLFWwindow *window) : 
 defaultShader("resources/shaders/default.vert","resources/shaders/default.frag"),
+blankShader("resources/shaders/blank.vert","resources/shaders/blank.frag"),
 instancedShader("resources/shaders/instanced.vert","resources/shaders/default.frag"),
 outlineShader("resources/shaders/outline.vert","resources/shaders/outline.frag"),
 textShader("resources/shaders/text.vert","resources/shaders/text.frag"),
@@ -242,18 +243,26 @@ void World::Draw(){
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
         
         for(int i = 0; i < objects.size(); i++){
-            objects[i].prepareInstance();
+            Object& object       = objects[i];
+            Model* model         = object.getModel();
+            glm::mat4& transform = object.getGLMTransform();
+            model->prepareInstance(transform);
         }
         for(int i = 0; i < Model::models.size(); i++){
             Model::models[i]->drawInstanced(defaultShader, instancedShader, camera);
-        }        
+        }
+
+        if(user.hasSelectedObject()){
+            user.getSelectedObject()->drawOutline(blankShader, outlineShader, camera);
+        }
+
+        /*    
         if(collidersAreVisible){
             for(int i = 0; i < objects.size(); i++){
                 objects[i].drawColliders(defaultShader, camera, cubeModel);
             }
         }
-
-        user.drawSelected(outlineShader, camera);
+        */
 
         interface.Draw(textRenderer, textShader, currentTime);
 }
@@ -367,7 +376,13 @@ void World::selectObject(std::vector<std::string> params){
     glClearColor(0.0,0.0,0.0,1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(int i = 0; i < objects.size(); i++){
-        objects[i].drawId(idShader, camera);
+        Object& object = objects[i];
+        Model* model = object.getModel();
+        glm::mat4& transform = object.getGLMTransform();
+        int id = object.getId();
+
+        model->setTransform(transform);
+        model->drawId(idShader, camera, id);
     }
     int data[0];
     GLint x = (int)(Screen::frameBufferWidth/2);
@@ -375,27 +390,20 @@ void World::selectObject(std::vector<std::string> params){
     glReadBuffer(GL_COLOR_ATTACHMENT1);
     glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, data);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    int id = data[0];
 
-    //char d[2];
-    //d[0] = (char)(((float)data[0])*255.0);
-    //d[1] = (char)(((float)data[1])*255.0);
-
-    //std::cout << id << std::endl;
-    //short int id = *((unsigned short*)(data));
-
-    //std::cout << id << std::endl;
-    /*Message message{
+    Message message{
         MessageType::DATA,
-        std::to_string(id)
+        "Object ID: " + std::to_string(id) + " selected."
     };
-    */
-   int id = data[0];
+    
     if(id){
         user.selectObject(getObjectById(id));
     }else{
         user.deselectObject();
     }
-    //interface.write(message);
+
+    interface.write(message);
 }
 void World::deselectObject(std::vector<std::string> params){
     user.deselectObject();
