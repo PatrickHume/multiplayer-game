@@ -4,6 +4,7 @@
 // It is also where most of the game logic happens.
 World::World(GLFWwindow *window)
 {
+    // ---------------------------------- Loading Assets ----------------------------------
     // Load each shader.
     defaultShader.Load(   "resources/shaders/default.vert",   "resources/shaders/default.frag");
     blankShader.Load(     "resources/shaders/blank.vert",     "resources/shaders/blank.frag");
@@ -17,116 +18,109 @@ World::World(GLFWwindow *window)
     floorModel.Load(  "resources/models/plane/scene.gltf");
     // Modify the lada model to an accurate size and mass.
     ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
-    //ladaModel.setMass(100.0f);
-
-    //resize the cube a length of 1 unit (the model is length 2)
+    // Resize the cube a length of 1 unit (the model is of length 2)
     cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
     ladaModel.setMass(100.0f);
-
-    //resize the ground to 40, 1, 40
+    // Resize the ground to 40 x 1 x 40
     floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
-
-    camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
-    
-    // generate render and frame buffer objects
-    glGenRenderbuffers( 1, &renderbufId1 );
-    glGenRenderbuffers( 1, &depthbufId   );
-    glGenFramebuffers ( 1, &framebufId   );
-
-    // setup second renderbuffer (triID)
-    glBindRenderbuffer(GL_RENDERBUFFER, renderbufId1);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32I, Screen::frameBufferWidth, Screen::frameBufferHeight);
-
-    // setup depth buffer
-    glBindRenderbuffer(GL_RENDERBUFFER, depthbufId);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, Screen::frameBufferWidth, Screen::frameBufferHeight);
-
-    // setup framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, framebufId);  
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, renderbufId1);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,  GL_RENDERBUFFER, depthbufId  );
-    glEnable(GL_DEPTH_TEST);
-
-    // check if everything went well
-    GLenum stat = glCheckFramebufferStatus(GL_FRAMEBUFFER);  
-    if(stat != GL_FRAMEBUFFER_COMPLETE) { exit(0); }
-
-    // setup color attachments
-    const GLenum att[] = {GL_COLOR_ATTACHMENT1};
-    glDrawBuffers(1, att);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    //add model names from stringToModel to array
+    // Add the model names from the stringToModel map to modelNames
     for(std::map<std::string, Model*>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
         modelNames.push_back(it->first);
     }
 
-    physicsWorldSettings.gravity = rp3d::Vector3(0.0, -9.8, 0.0); 
-    // Create a physics world 
-    physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
+    // ---------------------------------- Generating Buffers ----------------------------------
+    // These buffers are used to get the models Id using the selectObject() function
+    // Generate render and frame buffer objects
+    glGenRenderbuffers( 1, &renderbufId1 );
+    glGenRenderbuffers( 1, &depthbufId   );
+    glGenFramebuffers ( 1, &framebufId   );
+    // Set up a render buffer with 32 bit integers for red, green, and blue.
+    // This is so we can save the objects' 32 bit int Id's to red.
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbufId1);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB32I, Screen::frameBufferWidth, Screen::frameBufferHeight);
+    // Set up the depth buffer so objects are sorted by distance correctly.
+    glBindRenderbuffer(GL_RENDERBUFFER, depthbufId);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, Screen::frameBufferWidth, Screen::frameBufferHeight);
+    // Set up the framebuffer to hold the renderbuffers.
+    glBindFramebuffer(GL_FRAMEBUFFER, framebufId);  
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, renderbufId1);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,  GL_RENDERBUFFER, depthbufId  );
+    // Enable depth testing.
+    glEnable(GL_DEPTH_TEST);
+    // Check frame buffer for errors.
+    GLenum stat = glCheckFramebufferStatus(GL_FRAMEBUFFER);  
+    if(stat != GL_FRAMEBUFFER_COMPLETE) { exit(0); }
+    // Set up color attachment to draw buffer 1.
+    const GLenum att[] = {GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(1, att);
+    // Bind the frame buffer back to 0 for regular drawing to the screen.
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    //objects.push_back(Object(physicsWorld, &ladaModel, rp3d::BodyType::DYNAMIC));
-    //objects.push_back(Object(physicsWorld, &cubeModel, rp3d::BodyType::STATIC));
+    // ---------------------------------- Shaders Setup ----------------------------------
+    // Set the lighting color.
+    glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    // Set the position of the light.
+	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
+    // Pass the lighting to the defaultShader.
+	defaultShader.Activate();
+	glUniform4f(glGetUniformLocation(defaultShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(defaultShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+    // Pass the lighting to the instancedShader.
+	instancedShader.Activate();
+	glUniform4f(glGetUniformLocation(instancedShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(instancedShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
+    // ---------------------------------- Text Renderer Setup ----------------------------------
+    // Pass an appropriate projection matrix to the text shader.
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(Screen::frameBufferWidth), 0.0f, static_cast<float>(Screen::frameBufferHeight));
     textShader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    // We can reuse these models many times per frame
 
-    // Force vector (in Newton) 
-    rp3d::Vector3 force(2.0, 0.0, 0.0); 
-    // Point where the force is applied 
-    rp3d::Vector3 point(4.0, 5.0, 6.0); 
+    // ---------------------------------- Physics Setup ----------------------------------
+    // Set the gravity to a realistic number.
+    physicsWorldSettings.gravity = rp3d::Vector3(0.0, -9.8, 0.0); 
+    // Create the physics world.
+    physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
 
-
-
+    // ---------------------------------- Adding a Solid Ground ----------------------------------
+    // Create an object for the ground.
+    Object ground(physicsWorld, &floorModel, rp3d::BodyType::STATIC);
+    // Create a transform to move the floor 5 units vertically down.
     rp3d::Vector3 position(0, -5, 0); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation); 
-
-    Object ground(physicsWorld, &floorModel, rp3d::BodyType::STATIC);
+    // Pass the transform to the ground.
     ground.body->setTransform(transform);
-
+    // Create a collider for the ground.
+    // Make the size 40 x 2 x 40 to fit the ground model.
     rp3d::Vector3       boxHalfExtents = rp3d::Vector3(20.0f,1.0f,20.0f);
+    // Move the collider vertically down 1 so the top of its collider matches the model.
     rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,-1.0f,0.0f);
+    // Keep the rotation of the collider as it is.
     rp3d::Quaternion    boxOrientation = rp3d::Quaternion::identity();
+    // The transform is calculated in Object::addBoxCollider(),
+    // So there is no need to set it here.
     rp3d::Transform     boxTransform   = rp3d::Transform::identity();
-
+    // Put everything into a struct.
     BoxCollider collider{
         boxHalfExtents,
         boxPosition,
         boxOrientation,
         boxTransform
     };
-
+    // Create a box and add it to the ground as a collider.
     rp3d::BoxShape* boxShape = physicsCommon.createBoxShape(collider.halfExtents);
     ground.addBoxCollider(collider, boxShape);
-
+    // Add the ground to the list of objects.
     objects.push_back(ground);
-
-
-    // Apply a force to the body 
-    //lada.body->applyLocalForceAtLocalPosition(force, point);
-
-    glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
-	glm::mat4 lightModel = glm::mat4(1.0f);
-	lightModel = glm::translate(lightModel, lightPos);
-
-	defaultShader.Activate();
-	glUniform4f(glGetUniformLocation(defaultShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(defaultShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-
-	instancedShader.Activate();
-	glUniform4f(glGetUniformLocation(instancedShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(instancedShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-
-    //timer for physics
-    lastPhysicsTime = glfwGetTime();
-    //timer for framerate
-    lastTime = glfwGetTime();
+    // Place the camera above the ground.
+    camera.setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
     
+    // ---------------------------------- Initialisation ----------------------------------
+    // Initialise the physics timer.
+    lastPhysicsTime = glfwGetTime();
+    // Initialise the framerate timer.
+    lastTime = glfwGetTime();
 }
 
 void World::createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel){
