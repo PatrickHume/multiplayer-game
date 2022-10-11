@@ -30,8 +30,6 @@ public:
     void addInstance();
     void delInstance();
     void prepareInstance(glm::mat4& transform);
-
-    static std::vector<Model*> models;
 private:
     const char* file;
     std::vector<unsigned char> data;

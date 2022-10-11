@@ -1,15 +1,11 @@
 #include"../headers/model.h"
 
-std::vector<Model*> Model::models = {};
-
 Model::Model()
 {   
 }
 
 void Model::Load(const char* file)
 {   
-    Model::models.push_back(this);
-
     std::string text = getFileContents(file);
     JSON = json::parse(text);
 
@@ -93,8 +89,8 @@ void Model::drawInstanced(Shader& shader, Shader& instancedShader, Camera& camer
         camera.sendPosition(shader, "camPos");
         for(int i = 0; i < numInstances; i++){
             glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
-            for (unsigned int i = 0; i < meshes.size(); i++){
-                meshes[i].Mesh::Draw(shader, camera, textures);
+            for (int j = 0; j < meshes.size(); j++){
+                meshes[j].Mesh::Draw(shader, camera, textures);
             }
         }
     }

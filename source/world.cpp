@@ -10,10 +10,20 @@ World::World(GLFWwindow *window)
     outlineShader.Load(   "resources/shaders/outline.vert",   "resources/shaders/outline.frag");
     textShader.Load(      "resources/shaders/text.vert",      "resources/shaders/text.frag");
     idShader.Load(        "resources/shaders/id.vert",        "resources/shaders/id.frag");
-
+    
     ladaModel.Load(   "resources/models/lada/scene.gltf");
     cubeModel.Load(   "resources/models/cube/scene.gltf");
     floorModel.Load(  "resources/models/plane/scene.gltf");
+
+    // resize lada to accurate size
+    ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
+    //ladaModel->setMass(930.0f);
+
+    //resize the cube a length of 1 unit (the model is length 2)
+    cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
+
+    //resize the ground to 40, 1, 40
+    floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
 
     camera.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
     
@@ -62,16 +72,6 @@ World::World(GLFWwindow *window)
     textShader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     // We can reuse these models many times per frame
-
-    // resize lada to accurate size
-    ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
-    //ladaModel.setMass(930.0f);
-
-    //resize the cube a length of 1 unit (the model is length 2)
-    cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
-
-    //resize the ground to 40, 1, 40
-    floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
 
     // Force vector (in Newton) 
     rp3d::Vector3 force(2.0, 0.0, 0.0); 
@@ -122,9 +122,9 @@ World::World(GLFWwindow *window)
 	glUniform3f(glGetUniformLocation(instancedShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     //timer for physics
-    double lastPhysicsTime = glfwGetTime();
+    lastPhysicsTime = glfwGetTime();
     //timer for framerate
-    double lastTime = glfwGetTime();
+    lastTime = glfwGetTime();
     
 }
 
@@ -211,7 +211,7 @@ void World::Update(){
     // -------
     // get the elapsed frame time
     currentPhysicsTime = glfwGetTime();
-    elapsedPhysicsTime = (rp3d::decimal)(currentPhysicsTime - lastPhysicsTime);
+    rp3d::decimal elapsedPhysicsTime = (rp3d::decimal)(currentPhysicsTime - lastPhysicsTime);
     lastPhysicsTime = glfwGetTime();
     // update the physics world
     accumulatedPhysicsTime += elapsedPhysicsTime;
@@ -246,8 +246,8 @@ void World::Draw(){
             glm::mat4& transform = object.getGLMTransform();
             model->prepareInstance(transform);
         }
-        for(int i = 0; i < Model::models.size(); i++){
-            Model::models[i]->drawInstanced(defaultShader, instancedShader, camera);
+        for(int i = 0; i < models.size(); i++){
+            models[i]->drawInstanced(defaultShader, instancedShader, camera);
         }
 
         if(user.hasSelectedObject()){
@@ -257,7 +257,7 @@ void World::Draw(){
         /*    
         if(collidersAreVisible){
             for(int i = 0; i < objects.size(); i++){
-                objects[i].drawColliders(defaultShader, camera, cubeModel);
+                objects[i].drawColliders(defaultShader, camera, &cubeModel);
             }
         }
         */
@@ -313,7 +313,7 @@ World::functionPointer World::stringToCommand(std::string& name){
     return mapCommands[name];
 }
 
-Object* World::getObjectById(short int id){
+Object* World::getObjectById(int id){
     for(int i = 0; i < objects.size(); i++){
         if(objects[i].getId() == id){
             return &(objects[i]);
