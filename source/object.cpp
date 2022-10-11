@@ -13,6 +13,7 @@ Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bo
     // create a rigidbody at (0,0,0)
     body = physicsWorld->createRigidBody(transform);
     body->setType(bodyType);
+    body->setMass(model->getMass());
 }
 
 void Object::addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape){

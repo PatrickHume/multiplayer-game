@@ -25,7 +25,12 @@ void Model::Load(const char* file)
     traverseNode(0);
     std::cout << "traversed" << std::endl;
 }
-
+void Model::setMass(rp3d::decimal mass){
+    Model::mass = mass;
+}
+rp3d::decimal Model::getMass(){
+    return mass;
+}
 void Model::setModelPosition(glm::vec3 position)
 {
     Model::modelPosition = position;

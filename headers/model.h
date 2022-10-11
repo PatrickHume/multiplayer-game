@@ -2,6 +2,7 @@
 #define MODEL_CLASS_H
 
 #include<json/json.h>
+#include <reactphysics3d/reactphysics3d.h>
 #include"mesh.h"
 #include"shader.h"
 #include"texture.h"
@@ -30,6 +31,8 @@ public:
     void addInstance();
     void delInstance();
     void prepareInstance(glm::mat4& transform);
+    void setMass(rp3d::decimal mass);
+    rp3d::decimal getMass();
 private:
     const char* file;
     std::vector<unsigned char> data;
@@ -39,6 +42,8 @@ private:
     unsigned int numInstances;
     int instanceIndex = 0;
     std::vector<glm::mat4> instanceMatrices;
+
+    float mass = 10.0f;
 
     void setUniforms(Shader& shader, Camera& camera);
 

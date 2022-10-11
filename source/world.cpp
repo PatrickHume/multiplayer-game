@@ -4,23 +4,24 @@
 // It is also where most of the game logic happens.
 World::World(GLFWwindow *window)
 {
+    // Load each shader.
     defaultShader.Load(   "resources/shaders/default.vert",   "resources/shaders/default.frag");
     blankShader.Load(     "resources/shaders/blank.vert",     "resources/shaders/blank.frag");
     instancedShader.Load( "resources/shaders/instanced.vert", "resources/shaders/default.frag");
     outlineShader.Load(   "resources/shaders/outline.vert",   "resources/shaders/outline.frag");
     textShader.Load(      "resources/shaders/text.vert",      "resources/shaders/text.frag");
     idShader.Load(        "resources/shaders/id.vert",        "resources/shaders/id.frag");
-    
+    // Load each model.
     ladaModel.Load(   "resources/models/lada/scene.gltf");
     cubeModel.Load(   "resources/models/cube/scene.gltf");
     floorModel.Load(  "resources/models/plane/scene.gltf");
-
-    // resize lada to accurate size
+    // Modify the lada model to an accurate size and mass.
     ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
-    //ladaModel->setMass(930.0f);
+    //ladaModel.setMass(100.0f);
 
     //resize the cube a length of 1 unit (the model is length 2)
     cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
+    ladaModel.setMass(100.0f);
 
     //resize the ground to 40, 1, 40
     floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
