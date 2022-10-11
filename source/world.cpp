@@ -20,7 +20,7 @@ World::World(GLFWwindow *window)
     ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
     // Resize the cube a length of 1 unit (the model is of length 2)
     cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
-    ladaModel.setMass(100.0f);
+    ladaModel.setMass(900.0f);
     // Resize the ground to 40 x 1 x 40
     floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
     // Add the model names from the stringToModel map to modelNames
@@ -228,21 +228,28 @@ void World::Update(){
 }
 
 void World::Draw(){
-        // Clear the viewport with a solid color.
+        // Clears the viewport with a solid color.
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-        // Reset the buffers.
+        // Resets the buffers.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        // Update the camera matrix for sending to shaders.
+        // Updates the camera matrix for sending to shaders.
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
-        
+        // Sends the transform of each object to their model
+        // so they can be rendered as a batch.
         for(int i = 0; i < objects.size(); i++){
             Object& object       = objects[i];
             Model* model         = object.getModel();
             glm::mat4& transform = object.getGLMTransform();
             model->prepareInstance(transform);
         }
+        // Render each model
         for(int i = 0; i < models.size(); i++){
-            models[i]->drawInstanced(defaultShader, instancedShader, camera);
+            Model* model = models[i];
+            if(model->readyToInstance()){
+                model->drawInstanced(instancedShader, camera);
+            }else{
+                model->drawBatch(defaultShader, camera);
+            }
         }
 
         if(user.hasSelectedObject()){

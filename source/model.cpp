@@ -77,26 +77,31 @@ void Model::prepareInstance(glm::mat4& transform){
     instanceIndex++;
 }
 
-void Model::drawInstanced(Shader& shader, Shader& instancedShader, Camera& camera)
+bool Model::readyToInstance(){
+    return numInstances >= instancingThreshold;
+}
+
+void Model::drawInstanced(Shader& instancedShader, Camera& camera)
 {  
     instanceIndex = 0;
-    if(numInstances >= instancingThreshold){
-        instancedShader.Activate();
-        camera.sendMatrix(instancedShader, "camMatrix");
-        camera.sendPosition(instancedShader, "camPos");
-        for (unsigned int i = 0; i < meshes.size(); i++){
-            meshes[i].setInstanceMatrices(instanceMatrices);
-            meshes[i].drawInstanced(instancedShader, camera, textures, numInstances);
-        }
-    }else{
-        shader.Activate();
-        camera.sendMatrix(shader, "camMatrix");
-        camera.sendPosition(shader, "camPos");
-        for(int i = 0; i < numInstances; i++){
-            glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
-            for (int j = 0; j < meshes.size(); j++){
-                meshes[j].Mesh::Draw(shader, camera, textures);
-            }
+    instancedShader.Activate();
+    camera.sendMatrix(instancedShader, "camMatrix");
+    camera.sendPosition(instancedShader, "camPos");
+    for (unsigned int i = 0; i < meshes.size(); i++){
+        meshes[i].setInstanceMatrices(instanceMatrices);
+        meshes[i].drawInstanced(instancedShader, camera, textures, numInstances);
+    }
+}
+void Model::drawBatch(Shader& shader, Camera& camera)
+{  
+    instanceIndex = 0;
+    shader.Activate();
+    camera.sendMatrix(shader, "camMatrix");
+    camera.sendPosition(shader, "camPos");
+    for(int i = 0; i < numInstances; i++){
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
+        for (int j = 0; j < meshes.size(); j++){
+            meshes[j].Mesh::Draw(shader, camera, textures);
         }
     }
 } 

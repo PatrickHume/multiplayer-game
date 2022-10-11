@@ -16,7 +16,9 @@ public:
 
     void Load(const char* file);
 
-    void drawInstanced(Shader& shader, Shader& instancedShader, Camera& camera);
+    bool readyToInstance();
+    void drawInstanced(Shader& shader, Camera& camera);
+    void drawBatch(Shader& shader, Camera& camera);
     void Draw(Shader& shader, Camera& camera);
     void drawOutline(Shader& outlineShader, Camera& camera);
     void drawId(Shader& shader, Camera& camera, int id);
