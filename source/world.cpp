@@ -228,11 +228,11 @@ void World::Update(){
 }
 
 void World::Draw(){
-        // render
-        // ------
+        // Clear the viewport with a solid color.
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+        // Reset the buffers.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        
+        // Update the camera matrix for sending to shaders.
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
         
         for(int i = 0; i < objects.size(); i++){
@@ -248,14 +248,11 @@ void World::Draw(){
         if(user.hasSelectedObject()){
             user.getSelectedObject()->drawOutline(blankShader, outlineShader, camera);
         }
-
-        /*    
         if(collidersAreVisible){
             for(int i = 0; i < objects.size(); i++){
-                objects[i].drawColliders(defaultShader, camera, &cubeModel);
+                objects[i].drawColliders(defaultShader, camera, cubeModel);
             }
         }
-        */
 
         interface.Draw(textRenderer, textShader, currentTime);
 }
