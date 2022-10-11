@@ -141,9 +141,15 @@ void Interface::toggleCmdLine()
 }
 
 void Interface::typeChar(char c){
+    if(cmdInput.length() >= 32){
+        return;
+    }
     cmdInput.push_back(c);
 }
 void Interface::backspace(){
+    if(cmdInput.empty()){
+        return;
+    }
     cmdInput.pop_back();
 }
 
