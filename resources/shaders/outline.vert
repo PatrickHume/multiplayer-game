@@ -21,7 +21,7 @@ void main()
     mat3 normalMatrix = mat3(transformMatrix);
     normalMatrix = inverse(normalMatrix);
     normalMatrix = transpose(normalMatrix);
-    norm = normalMatrix * aNormal;
+    norm = normalize(normalMatrix * aNormal);
 
     gl_Position = camMatrix * vec4(crntPos + (norm*outlineThickness), 1.0);
 }
