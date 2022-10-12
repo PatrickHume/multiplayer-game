@@ -40,8 +40,8 @@ private:
     std::vector<unsigned char> data;
     json JSON;
 
-    const int instancingThreshold = 50;
-    unsigned int numInstances;
+    const unsigned int instancingThreshold = 50;
+    unsigned int numInstances = 0;
     int instanceIndex = 0;
     std::vector<glm::mat4> instanceMatrices;
 
