@@ -1,7 +1,7 @@
 #include"../headers/object.h"
 int Object::nextId = 1;
 
-Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType){
+Object::Object(rp3d::PhysicsWorld* physicsWorld, std::shared_ptr<Model> model, rp3d::BodyType bodyType){
     id = nextId++;
     Object::model = model;
     model->addInstance();
@@ -13,7 +13,7 @@ Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bo
     // create a rigidbody at (0,0,0)
     body = physicsWorld->createRigidBody(transform);
     body->setType(bodyType);
-    
+
     //body->setMass(model->getMass());
 
     std::vector<rp3d::ConvexMeshShape*>& shapes = model->getCollisionShapes();
@@ -24,6 +24,10 @@ Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bo
     body->updateLocalCenterOfMassFromColliders();
     body->updateLocalInertiaTensorFromColliders();
     body->updateMassFromColliders();
+}
+
+Object::~Object(){
+    std::cout << "Deleted Object" << std::endl;
 }
 
 void Object::addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape){
@@ -50,7 +54,7 @@ void Object::Draw(Shader& shader, Camera& camera){
     model->Draw(shader, camera);
 }
 
-Model* Object::getModel(){
+std::shared_ptr<Model> Object::getModel(){
     return model;
 }
 

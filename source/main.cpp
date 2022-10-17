@@ -60,13 +60,15 @@ int main()
     Screen::recordNewWindowDimensions(window);
 
     // Create the world - this is where most of the game logic happens.
-    World world(window);
+    World world = World();
 
     // Name the output file "output.pprof" and begin profiling if debugging.
     #ifdef PROFILE
     ProfilerStart("output.pprof");
     #endif // PROFILE
 
+    // Don't run the mainloop when memory checking, or Valgrind gets stuck!
+    #ifndef MEMCHECK
     // Run the mainloop until the window is closed by the user.
     while (!glfwWindowShouldClose(window))
     {
@@ -82,14 +84,13 @@ int main()
 		// Poll all GLFW events.
 		glfwPollEvents();
     }
+    #endif // MEMCHECK
 
     // Output the profiling file if debugging.
     #ifdef PROFILE
     ProfilerStop();
     #endif // PROFILE
 
-    // Delete the world.
-    world.Delete();
     // Delete the window before ending the program.
 	glfwDestroyWindow(window);
     // Clear all previously allocated GLFW resources.

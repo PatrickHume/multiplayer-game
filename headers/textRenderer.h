@@ -30,10 +30,12 @@ class TextRenderer
 {
     public:
         TextRenderer();
+        ~TextRenderer();
         void renderText(Shader &s, std::string text, float x, float y, float scale, glm::vec3 color);
     private:
         std::map<char, Character> characters;
         unsigned int VAO, VBO;
+        unsigned int texture;
 };
 
 #endif

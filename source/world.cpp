@@ -2,7 +2,7 @@
 
 // World loads and stores many of the game assets.
 // It is also where most of the game logic happens.
-World::World(GLFWwindow *window)
+World::World()
 {
     // ---------------------------------- Loading Assets ----------------------------------
     // Load each shader.
@@ -13,17 +13,23 @@ World::World(GLFWwindow *window)
     textShader.Load(      "resources/shaders/text.vert",      "resources/shaders/text.frag");
     idShader.Load(        "resources/shaders/id.vert",        "resources/shaders/id.frag");
     // Load each model.
-    ladaModel.Load(   "resources/models/lada/scene.gltf",   physicsCommon);
-    cubeModel.Load(   "resources/models/cube/scene.gltf",   physicsCommon);
-    floorModel.Load(  "resources/models/plane/scene.gltf",  physicsCommon);
+    ladaModel = std::make_shared<Model>(   "resources/models/lada/scene.gltf",   physicsCommon);
+    cubeModel = std::make_shared<Model>(   "resources/models/cube/scene.gltf",   physicsCommon);
+    floorModel = std::make_shared<Model>(  "resources/models/plane/scene.gltf",  physicsCommon);
+    // Store the shared pointers in a vector.
+    models = {
+            ladaModel,
+            cubeModel,
+            floorModel
+        };
     // Modify the lada model to an accurate size and mass.
-    ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
+    ladaModel->setModelScale(glm::vec3(0.019f,0.019f,0.019f));
     // Resize the cube a length of 1 unit (the model is of length 2)
-    cubeModel.setModelScale(glm::vec3(0.5f,10.0f,0.5f));
+    cubeModel->setModelScale(glm::vec3(0.5f,10.0f,0.5f));
     // Resize the ground to 40 x 1 x 40
-    floorModel.setModelScale(glm::vec3(200.0f,1.0f,200.0f));
+    floorModel->setModelScale(glm::vec3(200.0f,1.0f,200.0f));
     // Add the model names from the stringToModel map to modelNames
-    for(std::map<std::string, Model*>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
+    for(std::map<std::string, std::shared_ptr<Model>>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
         modelNames.push_back(it->first);
     }
 
@@ -83,13 +89,13 @@ World::World(GLFWwindow *window)
 
     // ---------------------------------- Adding a Solid Ground ----------------------------------
     // Create an object for the ground.
-    Object ground(physicsWorld, &floorModel, rp3d::BodyType::STATIC);
+    std::shared_ptr<Object> ground = std::make_shared<Object>(physicsWorld, floorModel, rp3d::BodyType::STATIC);
     // Create a transform to move the floor 5 units vertically down.
     rp3d::Vector3 position(0, -5, 0); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation); 
     // Pass the transform to the ground.
-    ground.body->setTransform(transform);
+    ground->body->setTransform(transform);
     // Create a collider for the ground.
     // Make the size 40 x 2 x 40 to fit the ground model.
     rp3d::Vector3       boxHalfExtents = rp3d::Vector3(200.0f,1.0f,200.0f);
@@ -109,7 +115,7 @@ World::World(GLFWwindow *window)
     };
     // Create a box and add it to the ground as a collider.
     rp3d::BoxShape* boxShape = physicsCommon.createBoxShape(collider.halfExtents);
-    ground.addBoxCollider(collider, boxShape);
+    ground->addBoxCollider(collider, boxShape);
     // Add the ground to the list of objects.
     objects.push_back(ground);
     // Place the camera above the ground.
@@ -122,23 +128,36 @@ World::World(GLFWwindow *window)
     lastTime = glfwGetTime();
 }
 
-void World::createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel){
+World::~World()
+{
+    glDeleteRenderbuffers(1, &renderbufId1);
+    glDeleteFramebuffers(1, &depthbufId);
+    glDeleteFramebuffers (1, &framebufId);
+
+    // Destroy the physics world 
+    physicsCommon.destroyPhysicsWorld(physicsWorld);
+
+    std::cout << "Deleted World" << std::endl;
+}
+
+void World::createObjectAtPos(std::shared_ptr<Model> model, glm::vec3 pos, glm::vec3 vel){
     rp3d::Vector3 position(pos.x, pos.y, pos.z); 
     rp3d::Vector3 velocity(vel.x, vel.y, vel.z); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
-    rp3d::Transform transform(position, orientation); 
-    Object object(physicsWorld, model, rp3d::BodyType::DYNAMIC);
-    object.body->setTransform(transform);
-    object.body->setLinearVelocity(velocity);
+    rp3d::Transform transform(position, orientation);
+
+    std::shared_ptr<Object> object = std::make_shared<Object>(physicsWorld, model, rp3d::BodyType::DYNAMIC);
+    object->body->setTransform(transform);
+    object->body->setLinearVelocity(velocity);
     objects.push_back(object);
 }
 
-void World::createObject(Model* model){
+void World::createObject(std::shared_ptr<Model> model){
     glm::vec3 pos = camera.getPositionInFront(20.0f);
     createObjectAtPos(model, pos);
 }
 
-void World::fireObject(Model* model, float speed){
+void World::fireObject(std::shared_ptr<Model> model, float speed){
     glm::vec3 pos = camera.getPositionInFront(20.0f);
     glm::vec3 vel = camera.getOrientation()*speed;
     createObjectAtPos(model, pos, vel);
@@ -149,7 +168,7 @@ void World::ProcessInput(GLFWwindow *window){
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && camera.focus && !camera.locked)
-        fireObject(&cubeModel, 20.0f);
+        fireObject(cubeModel, 20.0f);
 
     if (firstPress(window, GLFW_KEY_GRAVE_ACCENT) && camera.focus)
     {
@@ -218,15 +237,13 @@ void World::Draw(){
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
         // Sends the transform of each object to their model
         // so they can be rendered as a batch.
-        for(int i = 0; i < objects.size(); i++){
-            Object& object       = objects[i];
-            Model* model         = object.getModel();
-            glm::mat4& transform = object.getGLMTransform();
+        for(auto &object : objects){
+            std::shared_ptr<Model> model = object->getModel();
+            glm::mat4& transform = object->getGLMTransform();
             model->prepareInstance(transform);
         }
         // Render each model
-        for(int i = 0; i < models.size(); i++){
-            Model* model = models[i];
+        for(auto &model : models){
             if(model->readyToInstance()){
                 model->drawInstanced(instancedShader, camera);
             }else{
@@ -235,7 +252,7 @@ void World::Draw(){
         }
 
         if(user.hasSelectedObject()){
-            Object* object = user.getSelectedObject();
+            std::shared_ptr<Object> object = user.getSelectedObject();
             object->drawOutline(blankShader, outlineShader, camera);
 
             if(user.viewingColliders){
@@ -252,16 +269,6 @@ void World::Draw(){
         }
 
         interface.Draw(textRenderer, textShader, currentTime);
-}
-
-void World::Delete(){
-    // Destroy the physics world 
-    physicsCommon.destroyPhysicsWorld(physicsWorld);
-	// Delete all the objects we've created
-	defaultShader.Delete();
-
-    glDeleteFramebuffers(1, &framebufId);
-    glDeleteRenderbuffers(1, &renderbufId1);
 }
 
 bool World::firstPress(GLFWwindow *window, int key){
@@ -289,7 +296,7 @@ glm::vec3 World::stringVecToGlmVec3(std::vector<std::string>& params, int i){
     return vec;
 }
 
-Model* World::stringToModel(std::string& name){
+std::shared_ptr<Model> World::stringToModel(std::string& name){
     if (mapModels.find(name) == mapModels.end()) {
         throw std::runtime_error("Interface couldnt find \""+name+"\" in mapModels.");
     }
@@ -302,35 +309,35 @@ World::functionPointer World::stringToCommand(std::string& name){
     return mapCommands[name];
 }
 
-Object* World::getObjectById(int id){
-    for(int i = 0; i < objects.size(); i++){
-        if(objects[i].getId() == id){
-            return &(objects[i]);
+std::shared_ptr<Object> World::getObjectById(int id){
+    for(auto &object : objects){
+        if(object->getId() == id){
+            return object;
         }
     }
     throw std::runtime_error("World: getObjectById, object not found.");
 }
 
 void World::summonObject(std::vector<std::string> params){
-    Model* model = stringToModel(params[0]);
+    std::shared_ptr<Model> model = stringToModel(params[0]);
     createObject(model);
 }
 void World::summonManyObjects(std::vector<std::string> params){
     int num = std::stoi(params[0]);
     for(int i = 0; i < num; i++){
-        Model* model = stringToModel(params[1]);
+        std::shared_ptr<Model> model = stringToModel(params[1]);
         createObject(model);
     }
 }
 void World::summonObjectAtPos(std::vector<std::string> params){
-    Model* model = stringToModel(params[0]);
+    std::shared_ptr<Model> model = stringToModel(params[0]);
     glm::vec3 pos = stringVecToGlmVec3(params, 1); // offset by 1 as position 0 in params is taken by the object name
     createObjectAtPos(model,pos);
 }
 void World::summonManyObjectsAtPos(std::vector<std::string> params){
     int num = std::stoi(params[0]);
     for(int i = 0; i < num; i++){
-        Model* model = stringToModel(params[1]);
+        std::shared_ptr<Model> model = stringToModel(params[1]);
         glm::vec3 pos = stringVecToGlmVec3(params, 2); // offset by 1 as position 0 in params is taken by the object name
         createObjectAtPos(model,pos);
     }
@@ -361,11 +368,10 @@ void World::selectObject(std::vector<std::string> params){
     glBindRenderbuffer(GL_FRAMEBUFFER, renderbufId1);
     glClearColor(0.0,0.0,0.0,1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for(int i = 0; i < objects.size(); i++){
-        Object& object = objects[i];
-        Model* model = object.getModel();
-        glm::mat4& transform = object.getGLMTransform();
-        int id = object.getId();
+    for(auto &object : objects){
+        std::shared_ptr<Model> model = object->getModel();
+        glm::mat4& transform = object->getGLMTransform();
+        int id = object->getId();
 
         model->setTransform(transform);
         model->drawId(idShader, camera, id);

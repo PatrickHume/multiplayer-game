@@ -20,6 +20,16 @@ std::string getFileContents(const char* filename)
 // The default constructor is empty as shaders are defined as attributes in World.
 Shader::Shader()
 {
+	std::cout << "Created Shader Program" << std::endl;
+}
+
+// The destructor.
+Shader::~Shader()
+{
+	if(loaded){
+		glDeleteProgram(ID);
+		std::cout << "Deleted Shader Program" << std::endl;
+	}
 }
 
 // Loads both a vertex shader and a fragment shader and creates a shader program.
@@ -52,6 +62,9 @@ void Shader::Load(const char* vertexFile, const char* fragmentFile)
 
 	// Create a shader program.
 	ID = glCreateProgram();
+	// Record existance of program.
+	loaded = true;
+
 	// Attach the shaders to the shader program.
 	glAttachShader(ID, vertexShader);
 	glAttachShader(ID, fragmentShader);

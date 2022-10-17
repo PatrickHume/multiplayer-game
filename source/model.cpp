@@ -1,10 +1,14 @@
 #include"../headers/model.h"
 
-Model::Model()
-{   
+Model::~Model()
+{
+    std::cout << "Deleted Model" << std::endl;
+    for(auto &mesh : meshes){
+        delete mesh;
+    }
 }
 
-void Model::Load(const char* file, rp3d::PhysicsCommon& physicsCommon)
+Model::Model(const char* file, rp3d::PhysicsCommon& physicsCommon)
 {   
     std::string text = getFileContents(file);
     JSON = json::parse(text);
@@ -225,9 +229,9 @@ void Model::drawInstanced(Shader& instancedShader, Camera& camera)
     instancedShader.Activate();
     camera.sendMatrix(instancedShader, "camMatrix");
     camera.sendPosition(instancedShader, "camPos");
-    for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].setInstanceMatrices(instanceMatrices);
-        meshes[i].drawInstanced(instancedShader, camera, textures, numInstances);
+    for (const auto &mesh : meshes){
+        mesh->setInstanceMatrices(instanceMatrices);
+        mesh->drawInstanced(instancedShader, camera, textures, numInstances);
     }
 }
 void Model::drawBatch(Shader& shader, Camera& camera)
@@ -238,8 +242,8 @@ void Model::drawBatch(Shader& shader, Camera& camera)
     camera.sendPosition(shader, "camPos");
     for(int i = 0; i < numInstances; i++){
         glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
-        for (int j = 0; j < meshes.size(); j++){
-            meshes[j].Mesh::Draw(shader, camera, textures);
+        for (const auto &mesh : meshes){
+            mesh->Draw(shader, camera, textures);
         }
     }
 } 
@@ -247,8 +251,8 @@ void Model::drawBatch(Shader& shader, Camera& camera)
 void Model::Draw(Shader& shader, Camera& camera)
 {
     setUniforms(shader, camera);
-    for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::Draw(shader, camera, textures);
+    for (const auto &mesh : meshes){
+        mesh->Draw(shader, camera, textures);
     }
 } 
 
@@ -259,8 +263,8 @@ void Model::drawPrepOutline(Shader& blankShader, Camera& camera)
     glStencilMask(0xFF);
     glDisable(GL_DEPTH_TEST);
     glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
-    for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::drawSimple(blankShader, camera);
+    for (const auto &mesh : meshes){
+       mesh->drawSimple(blankShader, camera);
     }
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -270,8 +274,8 @@ void Model::drawPrepOutline(Shader& blankShader, Camera& camera)
 void Model::drawId(Shader& shader, Camera& camera, int id){
     setUniforms(shader, camera);
     glUniform1i(glGetUniformLocation(shader.ID, "objectID"), id);
-    for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::drawSimple(shader, camera);
+    for (const auto &mesh : meshes){
+        mesh->drawSimple(shader, camera);
     }
 }
 
@@ -279,8 +283,8 @@ void Model::drawOutline(Shader& outlineShader, Camera& camera){
     setUniforms(outlineShader, camera);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glUniform1f(glGetUniformLocation(outlineShader.ID, "outlineThickness"), 0.05f);
-    for (unsigned int i = 0; i < meshes.size(); i++){
-        meshes[i].Mesh::drawSimple(outlineShader, camera);
+    for (const auto &mesh : meshes){
+        mesh->drawSimple(outlineShader, camera);
     }
     glStencilMask(0xFF);
     glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -528,10 +532,10 @@ std::vector<struct Material> Model::loadMaterials()
     return materials;
 }
 
-std::vector<Texture> Model::loadTextures()
+std::vector<std::shared_ptr<Texture>> Model::loadTextures()
 {
     
-    std::vector<Texture> textures;
+    std::vector<std::shared_ptr<Texture>> textures;
 
     for (unsigned int i = 0; i < JSON["textures"].size(); i++){
 
@@ -552,7 +556,7 @@ std::vector<Texture> Model::loadTextures()
 
         if(!skip)
         {
-            Texture texture = Texture((fileDirectory+texPath).c_str(), "something", i);
+            std::shared_ptr<Texture> texture = std::make_shared<Texture>((fileDirectory+texPath).c_str(), "something", i);
             textures.push_back(texture);
             loadedTexName.push_back(texPath);  
         }
@@ -585,7 +589,7 @@ void Model::loadMesh(unsigned int indMesh, glm::mat4 matrix)
 
     struct Material material = materials[matInd];
 
-    meshes.push_back(Mesh(vertices, indices, material, matrix));
+    meshes.push_back(new Mesh(vertices, indices, material, matrix));
 }
 
 void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){

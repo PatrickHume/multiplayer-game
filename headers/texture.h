@@ -13,6 +13,7 @@ class Texture
         const char* type;
         GLuint unit;
         Texture(const char* image, const char* texType, GLuint slot);
+        ~Texture();
         
         void texUnit(Shader& shader, const char* uniform);
         void Bind();

@@ -12,14 +12,14 @@
 class World
 {
     public:
-        World(GLFWwindow *window);
+        World();
+        ~World();
         void ProcessInput(GLFWwindow *window);
         void Update();
         void Draw();  
-        void Delete();    
-        void createObject(Model* model);
-        void createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel = glm::vec3(0.0,0.0,0.0));
-        void fireObject(Model* model, float speed = 10.0f);
+        void createObject(std::shared_ptr<Model> model);
+        void createObjectAtPos(std::shared_ptr<Model> model, glm::vec3 pos, glm::vec3 vel = glm::vec3(0.0,0.0,0.0));
+        void fireObject(std::shared_ptr<Model> model, float speed = 10.0f);
         void Resize(GLFWwindow *window);
     private:
         /* ----------------------------------- Shaders ----------------------------------- */
@@ -68,27 +68,23 @@ class World
         // A model of a ruined car (Lada Samara 1500).
         // It should be about 4 meters long if resized properly.
         // Weight should be 945kg (with a full tank of petrol).
-        Model ladaModel;
+        std::shared_ptr<Model> ladaModel;
         // A cube used for development.
         // It should be resized to 1x1x1 metres.
-        Model cubeModel;
+        std::shared_ptr<Model> cubeModel;
         // A flat plane.
-        Model floorModel;
+        std::shared_ptr<Model> floorModel;
         // A vector holding the models to render during the draw loop.
-        std::vector<Model*> models = {
-            &ladaModel,
-            &cubeModel,
-            &floorModel
-        };
+        std::vector<std::shared_ptr<Model>> models;
         // A map pointing from string names to Model pointers,
         // used to enable the 'summonObject' related user commands.
-        std::map<std::string, Model*> mapModels =  
-        {{"cube", &cubeModel},
-        {"lada", &ladaModel}};
+        std::map<std::string, std::shared_ptr<Model>> mapModels =  
+        {{"cube", cubeModel},
+        {"lada", ladaModel}};
         // A function mapping strings to models with mapModels
         // Note that it also handles situations where the string entered
         // does not exist in mapModels.
-        Model* stringToModel(std::string& name);
+        std::shared_ptr<Model> stringToModel(std::string& name);
         // A vector of model names, automatically populated in the constructor
         // with each key of mapModels. Used to display the model names to the
         // user in repsonse to the 'list objects' command.
@@ -96,7 +92,7 @@ class World
 
         /* ----------------------------------- Objects ----------------------------------- */
         // A vector populated with every object created.
-        std::vector<Object> objects;
+        std::vector<std::shared_ptr<Object>> objects;
 
         /* ----------------------------------- Hidden Buffers ----------------------------------- */
         // The hidden frame buffer where object Ids are written to
@@ -140,7 +136,7 @@ class World
         // Each value in params must be castable as a float.
         glm::vec3 stringVecToGlmVec3(std::vector<std::string>& params, int i);
         // Take an int 'id' and loop through 'objects' until a match is found and returned.
-        Object* getObjectById(int id);
+        std::shared_ptr<Object> getObjectById(int id);
 
         /* ----------------------------------- User Commands ----------------------------------- */
         // A typedef for a pointer to a function which takes a string and returns void.

@@ -17,6 +17,7 @@ class Shader
 {
 public:
 	Shader();
+	~Shader();
 	// Loads both a vertex shader and a fragment shader and creates a shader program.
 	void Load(const char* vertexFile, const char* fragmentFile);
 	// Activates the shader program.
@@ -28,5 +29,7 @@ public:
 private:
 	// Checks a shader/shader program for compile errors.
 	void checkForCompileErrors(unsigned int shader, const char* type);
+	// Records whether load has been successfully called.
+	bool loaded = false;
 };
 #endif

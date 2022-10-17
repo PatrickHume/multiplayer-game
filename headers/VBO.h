@@ -4,6 +4,7 @@
 #include<glm/glm.hpp>
 #include<glad/glad.h>
 #include<vector>
+#include<iostream>
 
 struct Vertex
 {
@@ -17,13 +18,13 @@ class VBO
 {
     public:
         GLuint ID;
-        VBO(std::vector<Vertex>& vertices);
         VBO();
+        ~VBO();
+        void addVertices(std::vector<Vertex>& vertices);
         void UpdateInstanceMatrices(std::vector<glm::mat4>& matrixes);
 
         void Bind();
         void Unbind();
-        void Delete();
 };
 
 #endif

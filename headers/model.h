@@ -27,9 +27,8 @@ struct Collider{
 class Model
 {
 public:
-    Model();
-
-    void Load(const char* file, rp3d::PhysicsCommon& physicsCommon);
+    Model(const char* file, rp3d::PhysicsCommon& physicsCommon);
+    ~Model();
 
     bool readyToInstance();
     void drawInstanced(Shader& shader, Camera& camera);
@@ -69,11 +68,11 @@ private:
     std::string fileStr;
     std::string fileDirectory;
 
-    std::vector<Mesh> meshes;
+    std::vector<Mesh*> meshes;
     std::vector<struct Material> materials;
 
     std::vector<std::string> loadedTexName;
-    std::vector<Texture> textures;
+    std::vector<std::shared_ptr<Texture>> textures;
 
     std::vector<Collider> colliders;
     std::vector<rp3d::ConvexMeshShape*> collisionShapes;
@@ -102,7 +101,7 @@ private:
     std::vector<unsigned char> loadData();
     std::vector<float> getFloats(json accessor);
     std::vector<GLuint> getIndices(json accessor);
-    std::vector<Texture> loadTextures();
+    std::vector<std::shared_ptr<Texture>> loadTextures();
     std::vector<struct Material> loadMaterials();
     std::vector<Collider> loadColliders(rp3d::PhysicsCommon& physicsCommon);
 

@@ -5,10 +5,12 @@ VBO::VBO()
 {
 	glGenBuffers(1, &ID);
 }
-VBO::VBO(std::vector<Vertex>& vertices)
+VBO::~VBO(){
+	glDeleteBuffers(1, &ID);
+	std::cout << "Deleted VBO" << std::endl;
+}
+void VBO::addVertices(std::vector<Vertex>& vertices)
 {
-	glGenBuffers(1, &ID);
-	glBindBuffer(GL_ARRAY_BUFFER, ID);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 }
 void VBO::UpdateInstanceMatrices(std::vector<glm::mat4>& matrices)
@@ -27,10 +29,4 @@ void VBO::Bind()
 void VBO::Unbind()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-// Deletes the VBO
-void VBO::Delete()
-{
-	glDeleteBuffers(1, &ID);
 }

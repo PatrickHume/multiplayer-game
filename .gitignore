@@ -36,6 +36,7 @@
 *.code-workspace
 app
 test
+memcheck
 commitlint.config.js
 .husky/commit-msg
 
@@ -46,6 +47,8 @@ commitlint.config.js
 *.gltf
 *.gz
 *.pprof
+*.supp
+valgrind-out.txt
 
 models
 tests

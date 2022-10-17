@@ -5,12 +5,12 @@ User::User(){
 
 }
 
-void User::selectObject(Object* object){
+void User::selectObject(std::shared_ptr<Object> object){
     objectIsSelected = true;
     selectedObject = object;
 }
 
-Object* User::getSelectedObject(){
+std::shared_ptr<Object> User::getSelectedObject(){
     return selectedObject;
 }
 

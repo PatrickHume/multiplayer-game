@@ -18,22 +18,26 @@ Mesh::Mesh(
     // Generates Vertex Array Object and binds it
 	VAO.Bind();
 
-	// Generates Vertex Buffer Object and links it to vertices
-	VBO VBO(vertices);
+    vbo.Bind();
+    vbo.addVertices(vertices);
 	// Generates Element Buffer Object and links it to indices
     EBO.Bind();
 	EBO.setIndices(indices);
 
 	// Links VBO to VAO
-	VAO.LinkAttrib(VBO, 0, 3, GL_FLOAT, sizeof(Vertex), (void*) 0);
-    VAO.LinkAttrib(VBO, 1, 3, GL_FLOAT, sizeof(Vertex), (void*) (3 * sizeof(float)));
-    VAO.LinkAttrib(VBO, 2, 3, GL_FLOAT, sizeof(Vertex), (void*) (6 * sizeof(float)));
-    VAO.LinkAttrib(VBO, 3, 2, GL_FLOAT, sizeof(Vertex), (void*) (9 * sizeof(float)));
+	VAO.LinkAttrib(vbo, 0, 3, GL_FLOAT, sizeof(Vertex), (void*) 0);
+    VAO.LinkAttrib(vbo, 1, 3, GL_FLOAT, sizeof(Vertex), (void*) (3 * sizeof(float)));
+    VAO.LinkAttrib(vbo, 2, 3, GL_FLOAT, sizeof(Vertex), (void*) (6 * sizeof(float)));
+    VAO.LinkAttrib(vbo, 3, 2, GL_FLOAT, sizeof(Vertex), (void*) (9 * sizeof(float)));
 
 	// Unbind all to prevent accidentally modifying them
 	VAO.Unbind();
-	VBO.Unbind();
+	vbo.Unbind();
 	EBO.Unbind();
+}
+
+Mesh::~Mesh(){
+    std::cout << "Deleted Mesh" << std::endl;
 }
 
 void Mesh::setInstanceMatrices(std::vector<glm::mat4>& matrices){
@@ -67,17 +71,17 @@ void Mesh::drawSimple(
 void Mesh::drawInstanced(
     Shader& shader, 
     Camera& camera,
-    std::vector<Texture>& textures,
+    std::vector<std::shared_ptr<Texture>>& textures,
     unsigned int numInstances)
 {
     shader.Activate();
     VAO.Bind();
 
-    textures[material.baseColorTexture].Bind();
-    textures[material.metallicRoughnessTexture].Bind();
+    textures[material.baseColorTexture]->Bind();
+    textures[material.metallicRoughnessTexture]->Bind();
 
-    textures[material.baseColorTexture].texUnit(shader, "diffuseTex");
-    textures[material.metallicRoughnessTexture].texUnit(shader, "specularTex");
+    textures[material.baseColorTexture]->texUnit(shader, "diffuseTex");
+    textures[material.metallicRoughnessTexture]->texUnit(shader, "specularTex");
 
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
 
@@ -92,16 +96,16 @@ void Mesh::drawInstanced(
 void Mesh::Draw(
     Shader& shader, 
     Camera& camera,
-    std::vector<Texture>& textures)
+    std::vector<std::shared_ptr<Texture>>& textures)
 {
     shader.Activate();
     VAO.Bind();
 
-    textures[material.baseColorTexture].Bind();
-    textures[material.metallicRoughnessTexture].Bind();
+    textures[material.baseColorTexture]->Bind();
+    textures[material.metallicRoughnessTexture]->Bind();
 
-    textures[material.baseColorTexture].texUnit(shader, "diffuseTex");
-    textures[material.metallicRoughnessTexture].texUnit(shader, "specularTex");
+    textures[material.baseColorTexture]->texUnit(shader, "diffuseTex");
+    textures[material.metallicRoughnessTexture]->texUnit(shader, "specularTex");
 
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
     // all the material attributes must be sent to the shader

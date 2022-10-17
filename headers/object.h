@@ -19,7 +19,8 @@ class Object
     public:
         rp3d::RigidBody* body;
 
-        Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bodyType);
+        Object(rp3d::PhysicsWorld* physicsWorld, std::shared_ptr<Model> model, rp3d::BodyType bodyType);
+        ~Object();
         void    Draw(Shader& shader, Camera& camera);
         void    drawOutline(Shader& blankShader, Shader& outlineShader, Camera& camera);
         void    drawColliders(Shader& shader, Camera& camera, Model& cube);
@@ -29,7 +30,7 @@ class Object
         void    prepareInstance();
         int     getId();
         void    Delete();
-        Model*  getModel();
+        std::shared_ptr<Model>  getModel();
         const rp3d::Transform&      getRP3DTransform();
         glm::mat4&                  getGLMTransform();
         //std::vector<glm::mat4&>     getColliderTransforms();
@@ -38,7 +39,7 @@ class Object
         int id;
 
         rp3d::PhysicsWorld* physicsWorld;
-        Model* model;
+        std::shared_ptr<Model> model;
 
         std::vector<BoxCollider> boxColliders;
         bool showColliders = false;

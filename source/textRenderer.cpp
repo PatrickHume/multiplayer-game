@@ -32,7 +32,6 @@ TextRenderer::TextRenderer()
             continue;
         }
         // generate texture
-        unsigned int texture;
         glGenTextures(1, &texture);
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(
@@ -74,6 +73,13 @@ TextRenderer::TextRenderer()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);      
 
+}
+
+TextRenderer::~TextRenderer(){
+    glDeleteTextures(1, &texture);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);    
+    std::cout << "Deleted Text Renderer" << std::endl;   
 }
 
 void TextRenderer::renderText(Shader &s, std::string text, float x, float y, float scale, glm::vec3 color)

@@ -5,6 +5,11 @@ VAO::VAO()
 {
 	glGenVertexArrays(1, &ID);
 }
+VAO::~VAO()
+{
+	glDeleteVertexArrays(1, &ID);
+	std::cout << "Deleted VAO" << std::endl;
+}
 
 // Links a VBO to the VAO using a certain layout
 void VAO::LinkAttrib(VBO& VBO, GLuint layout, GLuint numComponents, GLenum type, GLsizeiptr stride, void* offset)
@@ -25,10 +30,4 @@ void VAO::Bind()
 void VAO::Unbind()
 {
 	glBindVertexArray(0);
-}
-
-// Deletes the VAO
-void VAO::Delete()
-{
-	glDeleteVertexArrays(1, &ID);
 }

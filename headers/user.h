@@ -9,8 +9,8 @@ class User
 public:
 	User();
 
-    void selectObject(Object* object);
-    Object* getSelectedObject();
+    void selectObject(std::shared_ptr<Object> object);
+    std::shared_ptr<Object> getSelectedObject();
     void deselectObject();
     bool hasSelectedObject();
     // A bool determining whether or not to show object colliders.
@@ -19,7 +19,7 @@ public:
     bool editingColliders = false;
     int  selectedCollider = 0;
 private:
-    Object* selectedObject;
+    std::shared_ptr<Object> selectedObject;
     bool objectIsSelected = false;
 };
 

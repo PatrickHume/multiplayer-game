@@ -30,6 +30,7 @@ class Mesh
         glm::quat quaternion;
 
         VAO VAO;
+        VBO vbo;
         EBO EBO;
         VBO instanceVBO;
 
@@ -38,6 +39,7 @@ class Mesh
             std::vector <GLuint>& indices, 
             struct Material& material,
             glm::mat4 matrix);
+        ~Mesh();
 
         void drawSimple(
             Shader& shader, 
@@ -46,13 +48,13 @@ class Mesh
         void drawInstanced(
             Shader& shader, 
             Camera& camera,
-            std::vector<Texture>& textures,
+            std::vector<std::shared_ptr<Texture>>& textures,
             unsigned int numInstances);
 
         void Draw(
             Shader& shader, 
             Camera& camera,
-            std::vector<Texture>& textures);
+            std::vector<std::shared_ptr<Texture>>& textures);
 
         void setInstanceMatrices(std::vector<glm::mat4>& matrices);
     private:
