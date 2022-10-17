@@ -4,7 +4,7 @@ Model::Model()
 {   
 }
 
-void Model::Load(const char* file)
+void Model::Load(const char* file, rp3d::PhysicsCommon& physicsCommon)
 {   
     std::string text = getFileContents(file);
     JSON = json::parse(text);
@@ -13,18 +13,151 @@ void Model::Load(const char* file)
     fileDirectory = fileStr.substr(0,fileStr.find_last_of('/')+1);
 
     Model::file = file;
-    std::cout << "got file contents" << std::endl;
-    data = getData();
-    std::cout << "parsed" << std::endl;
+    data = loadData();
+    materials = loadMaterials();
+    textures = loadTextures();
 
-    materials = getMaterials();
-    std::cout << "textures" << std::endl;
-    textures = getTextures();
-    std::cout << "out of getTextures" << std::endl;
+    colliders = loadColliders(physicsCommon);
+    for(auto &collider : colliders){
+        collisionShapes.push_back(collider.shape);
+    }
 
     traverseNode(0);
-    std::cout << "traversed" << std::endl;
 }
+
+std::vector<Collider> Model::loadColliders(rp3d::PhysicsCommon& physicsCommon)
+{
+    std::vector<Collider> colliders;
+    // Open colliders object.
+    std::string line;
+    std::ifstream colliderFile (fileDirectory+"collider.obj");
+    // Checks file exists.
+    if(!colliderFile)
+    {
+        return colliders;
+    }
+
+    while(getline(colliderFile, line))
+    {
+        if(line.empty()) continue;
+        if(line.at(0) == '#') continue;
+        std::vector<std::string> words = split(line, ' ');
+        if(words.empty()) continue;
+        if(words[0] == "o")
+        {
+            colliders.push_back(Collider{});
+        }
+        else if(words[0] == "v")
+        {
+            colliders.back().numVertices++;
+        }
+        else if(words[0] == "f")
+        {            
+            colliders.back().numFaces++;
+            colliders.back().numIndices += words.size()-1;
+        }
+    }
+
+    for(auto &collider : colliders){
+        collider.vertices = new float[collider.numVertices*3];
+        collider.indices = new int[collider.numIndices];
+        collider.faces = new rp3d::PolygonVertexArray::PolygonFace[collider.numFaces]; 
+    }
+
+    colliderFile.clear();
+    colliderFile.seekg(0);
+
+    int n = -1;
+    int vertIndex = 0;
+    int indIndex = 0;
+    int faceInd = 0;
+    int indOffset = 0;
+
+    while(getline(colliderFile, line))
+    {
+        std::cout << line << std::endl;
+        if(line.empty()) continue;
+        if(line.at(0) == '#') continue;
+        std::vector<std::string> words = split(line, ' ');
+        if(words.empty()) continue;
+
+        if(words[0] == "o")
+        {
+            n++;
+            vertIndex = 0;
+            indIndex = 0;
+            faceInd = 0;
+
+            if(n > 0)
+            indOffset += colliders[n-1].numVertices;
+        }
+        else if(words[0] == "v")
+        {
+            colliders[n].vertices[vertIndex++] = std::stof(words[1]);
+            colliders[n].vertices[vertIndex++] = std::stof(words[2]);
+            colliders[n].vertices[vertIndex++] = std::stof(words[3]);
+        }
+        else if(words[0] == "f")
+        {            
+            colliders[n].faces[faceInd].indexBase = indIndex;
+            colliders[n].faces[faceInd].nbVertices = words.size()-1;
+            faceInd++;
+
+            for(int i = 1; i < words.size(); i++){
+                std::vector<std::string> indexStrings = split(words[i], '/');
+
+                if(indexStrings.empty())
+                throw std::runtime_error("Model could not parse face - invalid face indexes.");
+
+                if(!isNumber(indexStrings[0]))
+                throw std::runtime_error("Model could not parse face - index not a number.");
+
+                int index = (std::stoi(indexStrings[0]) -1) - indOffset;
+                if(index < 0)
+
+                throw std::runtime_error("Model could not parse index, index < 0.");
+
+                colliders[n].indices[indIndex++] = index;
+            }
+        }
+    }
+    colliderFile.close();
+
+    for (auto &collider : colliders){        
+        std::cout << "num vertices " << collider.numVertices << std::endl;
+        std::cout << "num faces " << collider.numFaces << std::endl;
+        std::cout << "num ind " << collider.numIndices << std::endl;
+
+        for(int i = 0; i < collider.numIndices; i++){
+            std::cout << "ind " << collider.indices[i] << std::endl;
+        }
+        for(int i = 0; i < collider.numVertices; i++){
+            std::cout << "vert " << collider.vertices[i] << std::endl;
+        }
+    }
+    std::cout << "done " << std::endl;
+
+    for (auto &collider : colliders){
+        // Create the polygon vertex array 
+        collider.polygonArray = new rp3d::PolygonVertexArray(collider.numVertices, collider.vertices, 3 * sizeof(float), 
+        collider.indices, sizeof(int), collider.numFaces, collider.faces, 
+        rp3d::PolygonVertexArray::VertexDataType::VERTEX_FLOAT_TYPE, 
+        rp3d::PolygonVertexArray::IndexDataType::INDEX_INTEGER_TYPE); 
+        
+        // Create the polyhedron mesh 
+        collider.mesh = physicsCommon.createPolyhedronMesh(collider.polygonArray); 
+        
+        // Create the convex mesh collision shape 
+        collider.shape = physicsCommon.createConvexMeshShape(collider.mesh);
+    }
+
+    return colliders;
+}
+
+std::vector<rp3d::ConvexMeshShape*>& Model::getCollisionShapes(){
+    return collisionShapes;
+}
+
 void Model::setMass(rp3d::decimal mass){
     Model::mass = mass;
 }
@@ -50,6 +183,11 @@ void Model::setModelScale(glm::vec3 scale)
 {
     Model::modelScale = scale;
     updateLocal();
+
+    rp3d::Vector3 sca(scale.x, scale.y, scale.z);
+    for(auto &collider : colliders){
+        collider.shape->setScale(sca);
+    }
 }
 void Model::updateLocal(){
     glm::mat4 trans = glm::mat4(1.0f);
@@ -156,9 +294,9 @@ void Model::setUniforms(Shader& shader, Camera& camera){
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
-std::vector<unsigned char> Model::getData()
+std::vector<unsigned char> Model::loadData()
 {
-    std::cout << "in getData" << std::endl;
+    std::cout << "in loadData" << std::endl;
     std::string bytesText;
     std::string uri = JSON["buffers"][0]["uri"];
 
@@ -283,7 +421,7 @@ std::vector<Vertex> Model::assembleVertices(
     return vertices;
 }
 
-std::vector<struct Material> Model::getMaterials()
+std::vector<struct Material> Model::loadMaterials()
 {
     /* This is an example of the material json format we are dealing with...
 
@@ -390,7 +528,7 @@ std::vector<struct Material> Model::getMaterials()
     return materials;
 }
 
-std::vector<Texture> Model::getTextures()
+std::vector<Texture> Model::loadTextures()
 {
     
     std::vector<Texture> textures;

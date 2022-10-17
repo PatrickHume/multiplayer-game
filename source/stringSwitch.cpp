@@ -26,6 +26,21 @@ std::vector<std::string> split(const std::string &s, char delim) {
     split(s, delim, elems);
     return elems;
 }
+
+//https://stackoverflow.com/questions/447206/c-isfloat-function
+bool isFloat(std::string myString){
+    std::istringstream iss(myString);
+    float f;
+    iss >> std::noskipws >> f; // noskipws considers leading whitespace invalid
+    // Check the entire string was consumed and if either failbit or badbit is set
+    return iss.eof() && !iss.fail(); 
+}
+
+//https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
+bool isNumber(const std::string &s) {
+  return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
 /*
 //https://stackoverflow.com/questions/3418231/replace-part-of-a-string-with-another-string
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {

@@ -10,7 +10,8 @@ struct BoxCollider{
     rp3d::Vector3       halfExtents;
     rp3d::Vector3       position;
     rp3d::Quaternion    orientation;
-    rp3d::Transform     transform;
+    rp3d::Transform     RP3DTransform;
+    glm::mat4           GLMTransform;
 };
 
 class Object
@@ -23,13 +24,15 @@ class Object
         void    drawOutline(Shader& blankShader, Shader& outlineShader, Camera& camera);
         void    drawColliders(Shader& shader, Camera& camera, Model& cube);
         void    drawId(Shader& shader, Camera& camera);
+        //                                           this could be created inside the method...
         void    addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape);
         void    prepareInstance();
         int     getId();
         void    Delete();
         Model*  getModel();
-        glm::mat4&          getGLMTransform();
-        const rp3d::Transform&    getRP3DTransform();
+        const rp3d::Transform&      getRP3DTransform();
+        glm::mat4&                  getGLMTransform();
+        //std::vector<glm::mat4&>     getColliderTransforms();
     private:
         static int nextId;
         int id;

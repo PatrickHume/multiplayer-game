@@ -13,12 +13,26 @@ Object::Object(rp3d::PhysicsWorld* physicsWorld, Model* model, rp3d::BodyType bo
     // create a rigidbody at (0,0,0)
     body = physicsWorld->createRigidBody(transform);
     body->setType(bodyType);
-    body->setMass(model->getMass());
+    
+    //body->setMass(model->getMass());
+
+    std::vector<rp3d::ConvexMeshShape*>& shapes = model->getCollisionShapes();
+    for(const auto& shape : shapes){
+        rp3d::Transform transform = rp3d::Transform::identity(); 
+        body->addCollider(shape, transform);
+    }
+    body->updateLocalCenterOfMassFromColliders();
+    body->updateLocalInertiaTensorFromColliders();
+    body->updateMassFromColliders();
 }
 
 void Object::addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape){
+    //glm::vec3 modelPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    //glm::quat modelQuaternion = glm::mat4(1.0f);
+    //glm::vec3 modelScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
     rp3d::Transform transform(collider.position, collider.orientation);
-    collider.transform = transform;
+    collider.RP3DTransform = transform;
     boxColliders.push_back(collider);
     body->addCollider(shape, transform);
 }
@@ -46,10 +60,40 @@ void Object::drawOutline(Shader& blankShader, Shader& outlineShader, Camera& cam
     model->drawOutline(     outlineShader, camera);
 }
 
+/*
+Get the colliders
+Loop through them
+combine collider.getGLMTransform with object.getGLMTransform
+If num matches user collider selection index
+    Draw with flashing outline
+Otherwise
+    Draw regular
+
+At this point colliders are related to objects, not to models
+The model just gives the object some colliders on its creation.
+*/
+/*std::vector<glm::mat4>& Object::getColliderTransforms(){
+    std::vector<glm::mat4> colliderTransforms(boxColliders.size());
+    rp3d::Transform transform = body->getTransform();
+    for (int i = 0; i < boxColliders.size(); i++){
+        rp3d::Transform newTransform = transform * boxColliders[i].transform;
+        glm::mat4 glmTransform;
+        newTransform.getOpenGLMatrix(glm::value_ptr(glmTransform));
+        glm::mat4 scale = glm::mat4(0.0f);
+        scale[0][0] = boxColliders[i].halfExtents.x*2;
+        scale[1][1] = boxColliders[i].halfExtents.y*2;
+        scale[2][2] = boxColliders[i].halfExtents.z*2;
+        scale[3][3] = 1.0f;
+        glmTransform = glmTransform * scale;
+        colliderTransforms[i] = glmTransform;
+    }
+    return colliderTransforms;
+}*/
+
 void Object::drawColliders(Shader& shader, Camera& camera, Model& cube){
     rp3d::Transform transform   = body->getTransform();
     for (int i = 0; i < boxColliders.size(); i++){
-        rp3d::Transform newTransform = boxColliders[i].transform * transform;
+        rp3d::Transform newTransform = boxColliders[i].RP3DTransform * transform;
         glm::mat4 glmTransform;
         newTransform.getOpenGLMatrix(glm::value_ptr(glmTransform));
         glm::mat4 scale = glm::mat4(0.0f);

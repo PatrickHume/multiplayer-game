@@ -13,6 +13,11 @@ public:
     Object* getSelectedObject();
     void deselectObject();
     bool hasSelectedObject();
+    // A bool determining whether or not to show object colliders.
+    // Can be set by the user with the 'show colliders' and 'hide colliders' commands.
+    bool viewingColliders = false;
+    bool editingColliders = false;
+    int  selectedCollider = 0;
 private:
     Object* selectedObject;
     bool objectIsSelected = false;

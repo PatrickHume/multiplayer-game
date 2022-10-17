@@ -13,16 +13,15 @@ World::World(GLFWwindow *window)
     textShader.Load(      "resources/shaders/text.vert",      "resources/shaders/text.frag");
     idShader.Load(        "resources/shaders/id.vert",        "resources/shaders/id.frag");
     // Load each model.
-    ladaModel.Load(   "resources/models/lada/scene.gltf");
-    cubeModel.Load(   "resources/models/cube/scene.gltf");
-    floorModel.Load(  "resources/models/plane/scene.gltf");
+    ladaModel.Load(   "resources/models/lada/scene.gltf",   physicsCommon);
+    cubeModel.Load(   "resources/models/cube/scene.gltf",   physicsCommon);
+    floorModel.Load(  "resources/models/plane/scene.gltf",  physicsCommon);
     // Modify the lada model to an accurate size and mass.
     ladaModel.setModelScale(glm::vec3(0.019f,0.019f,0.019f));
     // Resize the cube a length of 1 unit (the model is of length 2)
-    cubeModel.setModelScale(glm::vec3(0.5f,0.5f,0.5f));
-    ladaModel.setMass(900.0f);
+    cubeModel.setModelScale(glm::vec3(0.5f,10.0f,0.5f));
     // Resize the ground to 40 x 1 x 40
-    floorModel.setModelScale(glm::vec3(20.0f,1.0f,20.0f));
+    floorModel.setModelScale(glm::vec3(200.0f,1.0f,200.0f));
     // Add the model names from the stringToModel map to modelNames
     for(std::map<std::string, Model*>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
         modelNames.push_back(it->first);
@@ -78,7 +77,7 @@ World::World(GLFWwindow *window)
 
     // ---------------------------------- Physics Setup ----------------------------------
     // Set the gravity to a realistic number.
-    physicsWorldSettings.gravity = rp3d::Vector3(0.0, -9.8, 0.0); 
+    physicsWorldSettings.gravity = rp3d::Vector3(0.0, -9.81, 0.0); 
     // Create the physics world.
     physicsWorld = physicsCommon.createPhysicsWorld(physicsWorldSettings); 
 
@@ -93,7 +92,7 @@ World::World(GLFWwindow *window)
     ground.body->setTransform(transform);
     // Create a collider for the ground.
     // Make the size 40 x 2 x 40 to fit the ground model.
-    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(20.0f,1.0f,20.0f);
+    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(200.0f,1.0f,200.0f);
     // Move the collider vertically down 1 so the top of its collider matches the model.
     rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,-1.0f,0.0f);
     // Keep the rotation of the collider as it is.
@@ -128,26 +127,9 @@ void World::createObjectAtPos(Model* model, glm::vec3 pos, glm::vec3 vel){
     rp3d::Vector3 velocity(vel.x, vel.y, vel.z); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation); 
-
     Object object(physicsWorld, model, rp3d::BodyType::DYNAMIC);
     object.body->setTransform(transform);
     object.body->setLinearVelocity(velocity);
-
-    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(0.5f,0.5f,0.5f);
-    rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,0.0f,0.0f);
-    rp3d::Quaternion    boxOrientation = rp3d::Quaternion::identity();
-    rp3d::Transform     boxTransform   = rp3d::Transform::identity();
-
-    BoxCollider collider{
-        boxHalfExtents,
-        boxPosition,
-        boxOrientation,
-        boxTransform
-    };
-
-    rp3d::BoxShape* boxShape = physicsCommon.createBoxShape(collider.halfExtents);
-    object.addBoxCollider(collider, boxShape);
-    
     objects.push_back(object);
 }
 
@@ -253,12 +235,20 @@ void World::Draw(){
         }
 
         if(user.hasSelectedObject()){
-            user.getSelectedObject()->drawOutline(blankShader, outlineShader, camera);
-        }
-        if(collidersAreVisible){
-            for(int i = 0; i < objects.size(); i++){
-                objects[i].drawColliders(defaultShader, camera, cubeModel);
+            Object* object = user.getSelectedObject();
+            object->drawOutline(blankShader, outlineShader, camera);
+
+            if(user.viewingColliders){
+                /*std::vector<glm::mat4> transforms = object->getColliderTransforms();
+                for(int i = 0; i < transforms.size(); i++){
+                    glm::mat4& transform = transforms[i];
+                    cubeModel.setTransform(transform);
+                    cubeModel.Draw(defaultShader, camera);
+                }*/
             }
+            //if(user.editingColliders){
+            //
+            //}
         }
 
         interface.Draw(textRenderer, textShader, currentTime);
@@ -355,16 +345,16 @@ void World::listObjects(std::vector<std::string> params){
     }
 }
 void World::showColliders(std::vector<std::string> params){
-    collidersAreVisible = true;
+    user.viewingColliders = true;
 }
 void World::hideColliders(std::vector<std::string> params){
-    collidersAreVisible = false;
+    user.viewingColliders = false;
 }
 void World::saveColliders(std::vector<std::string> params){
-    std::cout << "saveColliders" << std::endl;
+    user.editingColliders = false;
 }
 void World::editColliders(std::vector<std::string> params){
-    std::cout << "editColliders" << std::endl;
+    user.editingColliders = true;
 }
 void World::selectObject(std::vector<std::string> params){
     glBindFramebuffer(GL_FRAMEBUFFER, framebufId);

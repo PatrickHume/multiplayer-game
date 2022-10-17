@@ -2,19 +2,34 @@
 #define MODEL_CLASS_H
 
 #include<json/json.h>
+#include <fstream>
 #include <reactphysics3d/reactphysics3d.h>
 #include"mesh.h"
 #include"shader.h"
 #include"texture.h"
+#include"stringSwitch.h"
 
 using json = nlohmann::json;
+
+struct Collider{
+    int numVertices;
+    int numIndices;
+    int numFaces;
+    float* vertices;
+    int* indices;
+
+    rp3d::PolygonVertexArray::PolygonFace* faces;
+    rp3d::PolygonVertexArray* polygonArray;
+    rp3d::PolyhedronMesh* mesh;
+    rp3d::ConvexMeshShape* shape;
+};
 
 class Model
 {
 public:
     Model();
 
-    void Load(const char* file);
+    void Load(const char* file, rp3d::PhysicsCommon& physicsCommon);
 
     bool readyToInstance();
     void drawInstanced(Shader& shader, Camera& camera);
@@ -35,6 +50,8 @@ public:
     void prepareInstance(glm::mat4& transform);
     void setMass(rp3d::decimal mass);
     rp3d::decimal getMass();
+
+    std::vector<rp3d::ConvexMeshShape*>& getCollisionShapes();
 private:
     const char* file;
     std::vector<unsigned char> data;
@@ -58,6 +75,9 @@ private:
     std::vector<std::string> loadedTexName;
     std::vector<Texture> textures;
 
+    std::vector<Collider> colliders;
+    std::vector<rp3d::ConvexMeshShape*> collisionShapes;
+
     void loadMesh(unsigned int indMesh, glm::mat4 matrix);
 
     void traverseNode(unsigned int nextNode, glm::mat4 matrix = glm::mat4(1.0f));
@@ -79,11 +99,15 @@ private:
     // this will change throughout runtime - using quaternions prevents us from gimbal lock.
     glm::mat4 transform = glm::mat4(1.0f);
 
-    std::vector<unsigned char> getData();
+    std::vector<unsigned char> loadData();
     std::vector<float> getFloats(json accessor);
     std::vector<GLuint> getIndices(json accessor);
-    std::vector<Texture> getTextures();
-    std::vector<struct Material> getMaterials();
+    std::vector<Texture> loadTextures();
+    std::vector<struct Material> loadMaterials();
+    std::vector<Collider> loadColliders(rp3d::PhysicsCommon& physicsCommon);
+
+    std::vector<float> colliderVertices;
+    std::vector<int> colliderIndices;
 
     std::vector<Vertex> assembleVertices(
         std::vector<glm::vec3> positions,

@@ -41,6 +41,28 @@ class World
         // The shader used to write object Id values to the a hidden buffer,
         // referenced in the selectObject() function.
         Shader idShader;
+        
+        /* ----------------------------------- ReactPhysics3D ----------------------------------- */
+        // This is a factory module that you can use to create physics 
+        // world and other objects. It is also responsible for 
+        // logging and memory management.
+        rp3d::PhysicsCommon physicsCommon; 
+        rp3d::PhysicsWorld::WorldSettings physicsWorldSettings;
+        // The physics world responsible for handling all physics events.
+        rp3d::PhysicsWorld* physicsWorld; 
+        // The fixed length of each physics frame in seconds.
+        // If the visual framerate is too slow, multiple phyisics calls
+        // can happen in one frame to make up for it.
+        // It is important that this value is fixed.
+        const rp3d::decimal timeStep = 1.0f / 60.0f;
+        // The physics time value at the current frame.
+        double currentPhysicsTime;
+        // The physics time value of the previous frame.
+        double lastPhysicsTime;
+        // The physics time over several frames.
+        // This allows the physics engine to catch up by processing
+        // multiple physics frames per visual frame.
+        rp3d::decimal accumulatedPhysicsTime = 0;
 
         /* ----------------------------------- Models ----------------------------------- */
         // A model of a ruined car (Lada Samara 1500).
@@ -87,28 +109,6 @@ class World
         // in selectObject().
         GLuint depthbufId;
 
-        /* ----------------------------------- ReactPhysics3D ----------------------------------- */
-        // This is a factory module that you can use to create physics 
-        // world and other objects. It is also responsible for 
-        // logging and memory management.
-        rp3d::PhysicsCommon physicsCommon; 
-        rp3d::PhysicsWorld::WorldSettings physicsWorldSettings;
-        // The physics world responsible for handling all physics events.
-        rp3d::PhysicsWorld* physicsWorld; 
-        // The fixed length of each physics frame in seconds.
-        // If the visual framerate is too slow, multiple phyisics calls
-        // can happen in one frame to make up for it.
-        // It is important that this value is fixed.
-        const rp3d::decimal timeStep = 1.0f / 60.0f;
-        // The physics time value at the current frame.
-        double currentPhysicsTime;
-        // The physics time value of the previous frame.
-        double lastPhysicsTime;
-        // The physics time over several frames.
-        // This allows the physics engine to catch up by processing
-        // multiple physics frames per visual frame.
-        rp3d::decimal accumulatedPhysicsTime = 0;
-
         /* ----------------------------------- UI ----------------------------------- */
         // Stores the object selected by the user.
         User user;
@@ -125,9 +125,6 @@ class World
         double currentTime;
         // A timer for measuring the framerate, stores the time value of the previous frame.
         double lastTime;
-        // A bool determining whether or not to show object colliders.
-        // Can be set by the user with the 'show colliders' and 'hide colliders' commands.
-        bool collidersAreVisible = false;
 
         /* ----------------------------------- User Inputs ----------------------------------- */
         // An array of bools initially set to false
