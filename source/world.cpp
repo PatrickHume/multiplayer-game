@@ -29,7 +29,7 @@ World::World()
     // Modify the lada model to an accurate size and mass.
     ladaModel->setModelScale(glm::vec3(0.019f,0.019f,0.019f));
     // Resize the cube a length of 1 unit (the model is of length 2)
-    cubeModel->setModelScale(glm::vec3(0.5f,10.0f,0.5f));
+    cubeModel->setModelScale(glm::vec3(0.5f,0.5f,0.5f));
     // Resize the ground to 40 x 1 x 40
     floorModel->setModelScale(glm::vec3(20.0f,1.0f,20.0f));
     // Add the model names from the stringToModel map to modelNames
@@ -132,55 +132,68 @@ World::World()
     lastTime = glfwGetTime();
 }
 
+// World Destructor
 World::~World()
 {
+    // Delete the buffers used for selecting objects.
     glDeleteRenderbuffers(1, &renderbufId1);
     glDeleteFramebuffers(1, &depthbufId);
     glDeleteFramebuffers (1, &framebufId);
-
     // Destroy the physics world 
     physicsCommon.destroyPhysicsWorld(physicsWorld);
 
     std::cout << "Deleted World" << std::endl;
 }
 
+// Creates an object at a position, with a velocity (optional).
 void World::createObjectAtPos(std::shared_ptr<Model> model, glm::vec3 pos, glm::vec3 vel){
+    // Create the object transform.
     rp3d::Vector3 position(pos.x, pos.y, pos.z); 
-    rp3d::Vector3 velocity(vel.x, vel.y, vel.z); 
     rp3d::Quaternion orientation = rp3d::Quaternion::identity(); 
     rp3d::Transform transform(position, orientation);
-
+    // Create the object velocity.
+    rp3d::Vector3 velocity(vel.x, vel.y, vel.z); 
+    // Create a pointer to the new object.
     std::shared_ptr<Object> object = std::make_shared<Object>(physicsWorld, model, rp3d::BodyType::DYNAMIC);
+    // Set transform and velocity.
     object->body->setTransform(transform);
     object->body->setLinearVelocity(velocity);
+    // Add the object to the world.
     objects.push_back(object);
 }
 
+//  Creates an object.
 void World::createObject(std::shared_ptr<Model> model){
     glm::vec3 pos = camera.getPositionInFront(20.0f);
     createObjectAtPos(model, pos);
 }
 
+// Creates an object in front of the camera with a velocity away from the camera.
 void World::fireObject(std::shared_ptr<Model> model, float speed){
     glm::vec3 pos = camera.getPositionInFront(20.0f);
     glm::vec3 vel = camera.getOrientation()*speed;
     createObjectAtPos(model, pos, vel);
 }
 
+// Processes the window's inputs.
 void World::ProcessInput(GLFWwindow *window){
+    // If escape key is pressed: exit game loop.
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
+    // If P key is pressed: fire an object.
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && camera.focus && !camera.locked)
         fireObject(ladaModel, 20.0f);
 
+    // -------- The following could be put into interface as interface.Inputs(window); --------
+    // -------- However the camera must be locked, which the interface doesn't have access to.
+    // If ` key is presed: open command input.
     if (firstPress(window, GLFW_KEY_GRAVE_ACCENT) && camera.focus)
     {
         glfwSetCursorPos(window, (Screen::windowWidth / 2), (Screen::windowHeight / 2));
         interface.toggleCmdLine();
         camera.locked = interface.cmdLineOpen;
     }
-
+    // If interface is open and enter key is pressed: process the command from the command interface.
     if (firstPress(window, GLFW_KEY_ENTER) && interface.checkCmd())
     {
         Command command = interface.getCmd(); // set interface.commandSent = false;
@@ -188,7 +201,7 @@ void World::ProcessInput(GLFWwindow *window){
             (this->*mapCommands[command.name])(command.parameters);
         }
     }
-
+    // If interface is open and any key is pressed: type into the command interface.
     if(interface.cmdLineOpen && camera.focus){
         for(int key = 44; key <= 93; key++){
             if (firstPress(window, key)){
@@ -203,35 +216,37 @@ void World::ProcessInput(GLFWwindow *window){
         }
     }
 
+    // Give inputs to camera to process.
     camera.Inputs(window);
 }
-
+// Updates the physics world, and physics/framerate timers.
 void World::Update(){
-    // physics
+    // Physics
     // -------
-    // get the elapsed frame time
+    // Get the elapsed frame time
     currentPhysicsTime = glfwGetTime();
     rp3d::decimal elapsedPhysicsTime = (rp3d::decimal)(currentPhysicsTime - lastPhysicsTime);
     lastPhysicsTime = glfwGetTime();
-    // update the physics world
+    // Update the physics world
     accumulatedPhysicsTime += elapsedPhysicsTime;
     while(accumulatedPhysicsTime > timeStep){
         accumulatedPhysicsTime -= timeStep;
         physicsWorld->update(timeStep);
     } 
 
-    // framerate
+    // Framerate
     // ---------
     currentTime = glfwGetTime();
     frames++;
     if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
-        // printf and reset timer
+        // Display the framerate.
         std::cout << frames << " fps" << std::endl;
+        // Reset the counter.
         frames = 0;
         lastTime += 1.0;
     }
 }
-
+// Draws the game objects and renders object selections.
 void World::Draw(){
         // Clears the viewport with a solid color.
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -267,14 +282,11 @@ void World::Draw(){
                     cubeModel.Draw(defaultShader, camera);
                 }*/
             }
-            //if(user.editingColliders){
-            //
-            //}
         }
 
         interface.Draw(textRenderer, textShader, currentTime);
 }
-
+// Records whether a key has just been pressed (true), or is being held over several frames (false).
 bool World::firstPress(GLFWwindow *window, int key){
     if (key >= 260){
         std::cout << (char)key << std::endl;
@@ -291,7 +303,7 @@ bool World::firstPress(GLFWwindow *window, int key){
     }
     return false;
 }
-
+// Converts 3 string params a glm::vec3 of floats.
 glm::vec3 World::stringVecToGlmVec3(std::vector<std::string>& params, int i){
     glm::vec3 vec(
         std::stof(params[i]),
@@ -299,20 +311,21 @@ glm::vec3 World::stringVecToGlmVec3(std::vector<std::string>& params, int i){
         std::stof(params[i+2]));
     return vec;
 }
-
+// Converts a string model name to a shared pointer to a model.
 std::shared_ptr<Model> World::stringToModel(std::string& name){
     if (mapModels.find(name) == mapModels.end()) {
         throw std::runtime_error("Interface couldnt find \""+name+"\" in mapModels.");
     }
     return mapModels[name];
 }
+// Takes a string command name and returns a function to a pointer.
 World::functionPointer World::stringToCommand(std::string& name){
     if (mapCommands.find(name) == mapCommands.end()) {
         throw std::runtime_error("Interface couldnt find \""+name+"\" in mapCommands.");
     }
     return mapCommands[name];
 }
-
+// Takes an id and loops through all objects to find and return a match.
 std::shared_ptr<Object> World::getObjectById(int id){
     for(auto &object : objects){
         if(object->getId() == id){
@@ -322,6 +335,7 @@ std::shared_ptr<Object> World::getObjectById(int id){
     throw std::runtime_error("World: getObjectById, object not found.");
 }
 
+// -------- The following can be mapped to in game commands in commands.txt --------
 void World::summonObject(std::vector<std::string> params){
     std::shared_ptr<Model> model = stringToModel(params[0]);
     createObject(model);
