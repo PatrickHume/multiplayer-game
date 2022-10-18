@@ -22,12 +22,16 @@ World::World()
             cubeModel,
             floorModel
         };
+    // Map strings to model pointers.
+    mapModels =  
+        {{"cube", cubeModel},
+        {"lada", ladaModel}};
     // Modify the lada model to an accurate size and mass.
     ladaModel->setModelScale(glm::vec3(0.019f,0.019f,0.019f));
     // Resize the cube a length of 1 unit (the model is of length 2)
     cubeModel->setModelScale(glm::vec3(0.5f,10.0f,0.5f));
     // Resize the ground to 40 x 1 x 40
-    floorModel->setModelScale(glm::vec3(200.0f,1.0f,200.0f));
+    floorModel->setModelScale(glm::vec3(20.0f,1.0f,20.0f));
     // Add the model names from the stringToModel map to modelNames
     for(std::map<std::string, std::shared_ptr<Model>>::iterator it = mapModels.begin(); it != mapModels.end(); ++it) {
         modelNames.push_back(it->first);
@@ -98,7 +102,7 @@ World::World()
     ground->body->setTransform(transform);
     // Create a collider for the ground.
     // Make the size 40 x 2 x 40 to fit the ground model.
-    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(200.0f,1.0f,200.0f);
+    rp3d::Vector3       boxHalfExtents = rp3d::Vector3(20.0f,1.0f,20.0f);
     // Move the collider vertically down 1 so the top of its collider matches the model.
     rp3d::Vector3       boxPosition    = rp3d::Vector3(0.0f,-1.0f,0.0f);
     // Keep the rotation of the collider as it is.
@@ -168,7 +172,7 @@ void World::ProcessInput(GLFWwindow *window){
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && camera.focus && !camera.locked)
-        fireObject(cubeModel, 20.0f);
+        fireObject(ladaModel, 20.0f);
 
     if (firstPress(window, GLFW_KEY_GRAVE_ACCENT) && camera.focus)
     {

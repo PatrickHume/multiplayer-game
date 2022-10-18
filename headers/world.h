@@ -78,9 +78,7 @@ class World
         std::vector<std::shared_ptr<Model>> models;
         // A map pointing from string names to Model pointers,
         // used to enable the 'summonObject' related user commands.
-        std::map<std::string, std::shared_ptr<Model>> mapModels =  
-        {{"cube", cubeModel},
-        {"lada", ladaModel}};
+        std::map<std::string, std::shared_ptr<Model>> mapModels;
         // A function mapping strings to models with mapModels
         // Note that it also handles situations where the string entered
         // does not exist in mapModels.
