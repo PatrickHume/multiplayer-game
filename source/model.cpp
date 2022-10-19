@@ -556,7 +556,7 @@ std::vector<std::shared_ptr<Texture>> Model::loadTextures()
 
         if(!skip)
         {
-            std::shared_ptr<Texture> texture = std::make_shared<Texture>((fileDirectory+texPath).c_str(), "something", i);
+            std::shared_ptr<Texture> texture = std::make_shared<Texture>((fileDirectory+texPath).c_str(), i);
             textures.push_back(texture);
             loadedTexName.push_back(texPath);  
         }

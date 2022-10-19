@@ -6,7 +6,7 @@ World::World()
 {
     // ---------------------------------- Loading Assets ----------------------------------
     // Load heightmap.
-    heightmap = std::make_shared<Heightmap>("resources/heightmaps/mountains.png");
+    heightmap = std::make_shared<Heightmap>("resources/heightmaps/mountainsSquare.png");
     // Load each shader.
     defaultShader =     std::make_shared<Shader>("resources/shaders/default.vert",  "resources/shaders/default.frag");
     blankShader =       std::make_shared<Shader>("resources/shaders/blank.vert",    "resources/shaders/blank.frag");
@@ -185,6 +185,16 @@ void World::ProcessInput(GLFWwindow *window){
     // If P key is pressed: fire an object.
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && camera.focus && !camera.locked)
         fireObject(ladaModel, 20.0f);
+    // If L key is pressed: toggle wireframe view.
+    if (firstPress(window, GLFW_KEY_L) == GLFW_PRESS && camera.focus && !camera.locked){
+        viewingPolygons = !viewingPolygons;
+        if(viewingPolygons){
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else{
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+    }
 
     // -------- The following could be put into interface as interface.Inputs(window); --------
     // -------- However the camera must be locked, which the interface doesn't have access to.

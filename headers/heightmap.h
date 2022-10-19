@@ -13,6 +13,7 @@
 #include <learnopengl/shader_t.h>
 #include"VAO.h"
 #include"camera.h"
+#include"texture.h"
 
 class Heightmap
 {
@@ -22,14 +23,14 @@ class Heightmap
         void Draw(Camera& camera);
     private:
         const unsigned int NUM_PATCH_PTS = 4;
-        unsigned int texture;
         int width, height, nrChannels;
         std::vector<float> vertices;
         GLuint terrainVAO, terrainVBO;
         std::shared_ptr<Shader> tesselationShader;
+        std::shared_ptr<Texture> texture;
         // Set the number of patches across and down.
         // The total number is rez^2.
-        unsigned rez = 20;
+        unsigned rez = 32;
 };
 
 #endif

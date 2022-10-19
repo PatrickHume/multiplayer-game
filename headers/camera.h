@@ -48,9 +48,9 @@ private:
     // The camera matrix, sent to the vertex shaders.
     glm::mat4 cameraMatrix = glm::mat4(1.0f);
     // Controls the speed at which the camera travels through space.
-    float speed = 0.01f;
+    float speed = 0.05f;
     // The speed at which the camera moves when left shift is held
-    const float highSpeed = 0.4f;
+    const float highSpeed = 2.0f;
     // The regular speed of the camera
     const float regularSpeed = 0.1f;
     // The sensitivity of the camera orientation controls.

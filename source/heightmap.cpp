@@ -13,32 +13,9 @@ Heightmap::Heightmap(const char *filename)
         "resources/shaders/tesselation/controlShader.tcs", 
         "resources/shaders/tesselation/evaluationShader.tes"); 
 
-    // load and create a texture
-    // -------------------------
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-    unsigned char *data = stbi_load(filename, &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        tesselationShader->setInt("heightMap", 0);
-        std::cout << "Loaded heightmap of size " << height << " x " << width << std::endl;
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
+    texture = std::make_shared<Texture>(filename, 0);
+    width = texture->getWidth();
+    height = texture->getHeight();
 
     for(unsigned i = 0; i <= rez-1; i++){
         for(unsigned j = 0; j <= rez-1; j++){
@@ -67,8 +44,6 @@ Heightmap::Heightmap(const char *filename)
             vertices.push_back((j+1) / (float)rez);                     // v
         }
     }
-    // Release the image data now the vertex array is loaded.
-    stbi_image_free(data);
 
     // register VAO
     glGenVertexArrays(1, &terrainVAO);
@@ -92,6 +67,8 @@ Heightmap::~Heightmap()
 }
 void Heightmap::Draw(Camera& camera)
 {
+    texture->Bind();
+    texture->texUnit(tesselationShader, "heightMap");
     glm::mat4 model = glm::mat4(1.0f);
     tesselationShader->use();
     tesselationShader->setMat4("projection",camera.getProjection());
@@ -99,4 +76,5 @@ void Heightmap::Draw(Camera& camera)
     tesselationShader->setMat4("model",     model);
     glBindVertexArray(terrainVAO);
     glDrawArrays(GL_PATCHES, 0, 4*rez*rez);
+    texture->Unbind();
 }

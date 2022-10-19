@@ -121,6 +121,8 @@ class World
         double currentTime;
         // A timer for measuring the framerate, stores the time value of the previous frame.
         double lastTime;
+        // When true, only the outlines of polygons are drawn.
+        bool viewingPolygons = false;
 
         /* ----------------------------------- User Inputs ----------------------------------- */
         // An array of bools initially set to false

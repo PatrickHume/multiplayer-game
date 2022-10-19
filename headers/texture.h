@@ -9,16 +9,20 @@ class Texture
 {
     public:
         GLuint ID;
-        const char* type;
         GLuint unit;
-        Texture(const char* image, const char* texType, GLuint slot);
+        Texture(const char* image, GLuint slot);
         ~Texture();
         
         void texUnit(std::shared_ptr<Shader>& shader, const char* uniform);
         void Bind();
         void Unbind();
         void Delete();
+        int getHeight();
+        int getWidth();
+        int getNumColCh();
     private:
+        // Stores the width, height, and the number of color channels of the image
+        int widthImg, heightImg, numColCh;
 };
 
 #endif
