@@ -90,12 +90,12 @@ Texture::~Texture(){
     std::cout << "Deleted Texture" << std::endl;
 }
 
-void Texture::texUnit(Shader& shader, const char* uniform)
+void Texture::texUnit(std::shared_ptr<Shader>& shader, const char* uniform)
 {
 	// Gets the location of the uniform
-	GLuint texUni = glGetUniformLocation(shader.ID, uniform);
+	GLuint texUni = glGetUniformLocation(shader->ID, uniform);
 	// Shader needs to be activated before changing the value of a uniform
-	shader.Activate();
+	shader->use();
 	// Sets the value of the uniform
 	glUniform1i(texUni, unit);
 }

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <regex>
+#include <memory>
 #include "stringSwitch.h"
 #include "textRenderer.h"
 #include "camera.h"
@@ -40,7 +41,7 @@ public:
 	Interface();
     void toggleCmdLine();
     // time is used in draw to add a flashing cursor effect
-    void Draw(TextRenderer &textRenderer, Shader &textShader, double time = 0.0);
+    void Draw(TextRenderer &textRenderer, std::shared_ptr<Shader>&textShader, double time = 0.0);
 
     Command getCmd();
     bool checkCmd();

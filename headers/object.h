@@ -21,10 +21,10 @@ class Object
 
         Object(rp3d::PhysicsWorld* physicsWorld, std::shared_ptr<Model> model, rp3d::BodyType bodyType);
         ~Object();
-        void    Draw(Shader& shader, Camera& camera);
-        void    drawOutline(Shader& blankShader, Shader& outlineShader, Camera& camera);
-        void    drawColliders(Shader& shader, Camera& camera, Model& cube);
-        void    drawId(Shader& shader, Camera& camera);
+        void    Draw(std::shared_ptr<Shader>& shader, Camera& camera);
+        void    drawOutline(std::shared_ptr<Shader>& blankShader, std::shared_ptr<Shader>& outlineShader, Camera& camera);
+        void    drawColliders(std::shared_ptr<Shader>& shader, Camera& camera, Model& cube);
+        void    drawId(std::shared_ptr<Shader>& shader, Camera& camera);
         //                                           this could be created inside the method...
         void    addBoxCollider(BoxCollider collider, rp3d::CollisionShape *shape);
         void    prepareInstance();

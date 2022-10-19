@@ -223,10 +223,10 @@ bool Model::readyToInstance(){
     return numInstances >= instancingThreshold;
 }
 
-void Model::drawInstanced(Shader& instancedShader, Camera& camera)
+void Model::drawInstanced(std::shared_ptr<Shader>& instancedShader, Camera& camera)
 {  
     instanceIndex = 0;
-    instancedShader.Activate();
+    instancedShader->use();
     camera.sendMatrix(instancedShader, "camMatrix");
     camera.sendPosition(instancedShader, "camPos");
     for (const auto &mesh : meshes){
@@ -234,21 +234,21 @@ void Model::drawInstanced(Shader& instancedShader, Camera& camera)
         mesh->drawInstanced(instancedShader, camera, textures, numInstances);
     }
 }
-void Model::drawBatch(Shader& shader, Camera& camera)
+void Model::drawBatch(std::shared_ptr<Shader>& shader, Camera& camera)
 {  
     instanceIndex = 0;
-    shader.Activate();
+    shader->use();
     camera.sendMatrix(shader, "camMatrix");
     camera.sendPosition(shader, "camPos");
     for(int i = 0; i < numInstances; i++){
-        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
+        glUniformMatrix4fv(glGetUniformLocation(shader->ID, "transform"), 1, GL_FALSE, glm::value_ptr(instanceMatrices[i]));
         for (const auto &mesh : meshes){
             mesh->Draw(shader, camera, textures);
         }
     }
 } 
 
-void Model::Draw(Shader& shader, Camera& camera)
+void Model::Draw(std::shared_ptr<Shader>& shader, Camera& camera)
 {
     setUniforms(shader, camera);
     for (const auto &mesh : meshes){
@@ -256,7 +256,7 @@ void Model::Draw(Shader& shader, Camera& camera)
     }
 } 
 
-void Model::drawPrepOutline(Shader& blankShader, Camera& camera)
+void Model::drawPrepOutline(std::shared_ptr<Shader>& blankShader, Camera& camera)
 {
     setUniforms(blankShader, camera);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -271,18 +271,18 @@ void Model::drawPrepOutline(Shader& blankShader, Camera& camera)
     glStencilMask(0x00);
 }
 
-void Model::drawId(Shader& shader, Camera& camera, int id){
+void Model::drawId(std::shared_ptr<Shader>& shader, Camera& camera, int id){
     setUniforms(shader, camera);
-    glUniform1i(glGetUniformLocation(shader.ID, "objectID"), id);
+    glUniform1i(glGetUniformLocation(shader->ID, "objectID"), id);
     for (const auto &mesh : meshes){
         mesh->drawSimple(shader, camera);
     }
 }
 
-void Model::drawOutline(Shader& outlineShader, Camera& camera){
+void Model::drawOutline(std::shared_ptr<Shader>& outlineShader, Camera& camera){
     setUniforms(outlineShader, camera);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glUniform1f(glGetUniformLocation(outlineShader.ID, "outlineThickness"), 0.05f);
+    glUniform1f(glGetUniformLocation(outlineShader->ID, "outlineThickness"), 0.05f);
     for (const auto &mesh : meshes){
         mesh->drawSimple(outlineShader, camera);
     }
@@ -290,12 +290,12 @@ void Model::drawOutline(Shader& outlineShader, Camera& camera){
     glStencilFunc(GL_ALWAYS, 0, 0xFF);
 }
 
-void Model::setUniforms(Shader& shader, Camera& camera){
-    shader.Activate();
+void Model::setUniforms(std::shared_ptr<Shader>& shader, Camera& camera){
+    shader->use();
     camera.sendMatrix(shader, "camMatrix");
     camera.sendPosition(shader, "camPos");
     glm::mat4 matrix = transform * modelTransform;
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "transform"), 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 std::vector<unsigned char> Model::loadData()

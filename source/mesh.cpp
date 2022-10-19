@@ -57,24 +57,24 @@ void Mesh::setInstanceMatrices(std::vector<glm::mat4>& matrices){
 }
 
 void Mesh::drawSimple(
-    Shader& shader, 
+    std::shared_ptr<Shader>& shader, 
     Camera& camera)
 {
-    shader.Activate();
+    shader->use();
     VAO.Bind();
 
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
 
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }
 
 void Mesh::drawInstanced(
-    Shader& shader, 
+    std::shared_ptr<Shader>& shader, 
     Camera& camera,
     std::vector<std::shared_ptr<Texture>>& textures,
     unsigned int numInstances)
 {
-    shader.Activate();
+    shader->use();
     VAO.Bind();
 
     textures[material.baseColorTexture]->Bind();
@@ -83,22 +83,22 @@ void Mesh::drawInstanced(
     textures[material.baseColorTexture]->texUnit(shader, "diffuseTex");
     textures[material.metallicRoughnessTexture]->texUnit(shader, "specularTex");
 
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
 
-    glUniform1i(glGetUniformLocation(shader.ID, "doubleSided"),     material.doubleSided);
-    glUniform4fv(glGetUniformLocation(shader.ID, "baseColorFactor"), 1, glm::value_ptr(material.baseColorFactor));
-    glUniform1f(glGetUniformLocation(shader.ID, "metallicFactor"),  material.metallicFactor);
-    glUniform1f(glGetUniformLocation(shader.ID, "roughnessFactor"), material.roughnessFactor);
+    glUniform1i(glGetUniformLocation(shader->ID, "doubleSided"),     material.doubleSided);
+    glUniform4fv(glGetUniformLocation(shader->ID, "baseColorFactor"), 1, glm::value_ptr(material.baseColorFactor));
+    glUniform1f(glGetUniformLocation(shader->ID, "metallicFactor"),  material.metallicFactor);
+    glUniform1f(glGetUniformLocation(shader->ID, "roughnessFactor"), material.roughnessFactor);
 
     glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, numInstances);
 }
 
 void Mesh::Draw(
-    Shader& shader, 
+    std::shared_ptr<Shader>& shader, 
     Camera& camera,
     std::vector<std::shared_ptr<Texture>>& textures)
 {
-    shader.Activate();
+    shader->use();
     VAO.Bind();
 
     textures[material.baseColorTexture]->Bind();
@@ -107,13 +107,13 @@ void Mesh::Draw(
     textures[material.baseColorTexture]->texUnit(shader, "diffuseTex");
     textures[material.metallicRoughnessTexture]->texUnit(shader, "specularTex");
 
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
     // all the material attributes must be sent to the shader
-    //glUniform1i(glGetUniformLocation(shader.ID, "hasBaseColorTex"), material.hasBaseColorTex);
-    glUniform1i(glGetUniformLocation(shader.ID, "doubleSided"),     material.doubleSided);
-    glUniform4fv(glGetUniformLocation(shader.ID, "baseColorFactor"), 1, glm::value_ptr(material.baseColorFactor));
-    glUniform1f(glGetUniformLocation(shader.ID, "metallicFactor"),  material.metallicFactor);
-    glUniform1f(glGetUniformLocation(shader.ID, "roughnessFactor"), material.roughnessFactor);
+    //glUniform1i(glGetUniformLocation(shader->ID, "hasBaseColorTex"), material.hasBaseColorTex);
+    glUniform1i(glGetUniformLocation(shader->ID, "doubleSided"),     material.doubleSided);
+    glUniform4fv(glGetUniformLocation(shader->ID, "baseColorFactor"), 1, glm::value_ptr(material.baseColorFactor));
+    glUniform1f(glGetUniformLocation(shader->ID, "metallicFactor"),  material.metallicFactor);
+    glUniform1f(glGetUniformLocation(shader->ID, "roughnessFactor"), material.roughnessFactor);
 
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 }

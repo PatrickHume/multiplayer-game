@@ -50,7 +50,7 @@ glm::mat4& Object::getGLMTransform(){
     return glmTransform;
 }
 
-void Object::Draw(Shader& shader, Camera& camera){
+void Object::Draw(std::shared_ptr<Shader>& shader, Camera& camera){
     model->Draw(shader, camera);
 }
 
@@ -58,7 +58,7 @@ std::shared_ptr<Model> Object::getModel(){
     return model;
 }
 
-void Object::drawOutline(Shader& blankShader, Shader& outlineShader, Camera& camera){
+void Object::drawOutline(std::shared_ptr<Shader>& blankShader, std::shared_ptr<Shader>& outlineShader, Camera& camera){
     model->setTransform(    getGLMTransform());
     model->drawPrepOutline( blankShader, camera);
     model->drawOutline(     outlineShader, camera);
@@ -94,7 +94,7 @@ The model just gives the object some colliders on its creation.
     return colliderTransforms;
 }*/
 
-void Object::drawColliders(Shader& shader, Camera& camera, Model& cube){
+void Object::drawColliders(std::shared_ptr<Shader>& shader, Camera& camera, Model& cube){
     rp3d::Transform transform   = body->getTransform();
     for (int i = 0; i < boxColliders.size(); i++){
         rp3d::Transform newTransform = boxColliders[i].RP3DTransform * transform;
@@ -111,7 +111,7 @@ void Object::drawColliders(Shader& shader, Camera& camera, Model& cube){
     }
 }
 
-void Object::drawId(Shader& shader, Camera& camera){
+void Object::drawId(std::shared_ptr<Shader>& shader, Camera& camera){
     model->drawId(shader, camera, id);
 }
 

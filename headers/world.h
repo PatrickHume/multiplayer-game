@@ -4,10 +4,10 @@
 #include"../headers/user.h"
 #include"../headers/textRenderer.h"
 #include"../headers/stringSwitch.h"
-#include"../headers/shader.h"
 #include"../headers/interface.h"
 #include"../headers/camera.h"
 #include"../headers/screen.h"
+#include"../headers/heightmap.h"
 
 class World
 {
@@ -22,25 +22,27 @@ class World
         void fireObject(std::shared_ptr<Model> model, float speed = 10.0f);
         void Resize(GLFWwindow *window);
     private:
+        /* ----------------------------------- Heightmap ----------------------------------- */
+        std::shared_ptr<Heightmap> heightmap;
         /* ----------------------------------- Shaders ----------------------------------- */
         // The default shader used for rendering with diffuse and specular lighting.
-        Shader defaultShader;
+        std::shared_ptr<Shader> defaultShader;
         // Similar to the default shader, but used for instanced rendering.
         // The transform values are passed to this shader via a VBO in the VAO.
-        Shader instancedShader;
+        std::shared_ptr<Shader> instancedShader;
         // A blank shader which draws all objects as white.
         // Used for setting the stencil values.
-        Shader blankShader;
+        std::shared_ptr<Shader> blankShader;
         // A shader used to outline selected objects.
         // Draws the object in a block color with its surfaces extended outwards, 
         // making it appear larger. Used in conjunction with the 'blankShader' to stencil-away 
         // the center of the larger block color object, leaving just the its outline.
-        Shader outlineShader;
+        std::shared_ptr<Shader> outlineShader;
         // A shader used for rendering text with freeType.
-        Shader textShader;
+        std::shared_ptr<Shader> textShader;
         // The shader used to write object Id values to the a hidden buffer,
         // referenced in the selectObject() function.
-        Shader idShader;
+        std::shared_ptr<Shader> idShader;
         
         /* ----------------------------------- ReactPhysics3D ----------------------------------- */
         // This is a factory module that you can use to create physics 

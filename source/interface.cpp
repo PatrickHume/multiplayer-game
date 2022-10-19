@@ -166,7 +166,7 @@ bool Interface::checkCmd(){
     return true;
 }
 
-void Interface::Draw(TextRenderer &textRenderer, Shader &textShader, double time){
+void Interface::Draw(TextRenderer &textRenderer, std::shared_ptr<Shader>&textShader, double time){
     const float x = 25.0f;
     const float y = 25.0f;
     //height of text

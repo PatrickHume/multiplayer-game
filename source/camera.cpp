@@ -2,32 +2,42 @@
 
 Camera::Camera()
 {
+    // The matrix representing the orientation of the camera.
+    view = glm::mat4(1.0f);
+    // The matrix representing the perspective of the camera.
+    projection = glm::mat4(1.0f);
 }
 // Sets the position of the camera.
 void Camera::setPosition(glm::vec3 position){
     Camera::position = position;
 }
 // Sends the camera's transform matrix to the shader's "cameraMatrix" uniform.
-void Camera::sendMatrix(Shader& shader, const char* uniform)
+void Camera::sendMatrix(std::shared_ptr<Shader>& shader, const char* uniform)
 {
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 // Sends the camera's position to the shader's "cameraMatrix" uniform.
-void Camera::sendPosition(Shader& shader, const char* uniform)
+void Camera::sendPosition(std::shared_ptr<Shader>& shader, const char* uniform)
 {
-    glUniform3f(glGetUniformLocation(shader.ID, uniform), position.x, position.y, position.z);
+    glUniform3f(glGetUniformLocation(shader->ID, uniform), position.x, position.y, position.z);
 }
 // Updates the camera matrix.
 void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 {
-    // The matrix representing the orientation of the camera.
-    glm::mat4 view = glm::mat4(1.0f);
-    // The matrix representing the perspective of the camera.
-    glm::mat4 projection = glm::mat4(1.0f);
     view = glm::lookAt(position, position + orientation, up);
     projection = glm::perspective(glm::radians(FOVdeg), (float)(Screen::windowAspect), nearPlane, farPlane);
     
     cameraMatrix = projection * view;
+}
+// Updates the camera matrix.
+glm::mat4& Camera::getView()
+{
+    return view;
+}
+// Updates the camera matrix.
+glm::mat4& Camera::getProjection()
+{
+    return projection;
 }
 // Processes GLFW window inputs for movement and orientation controls.
 void Camera::Inputs(GLFWwindow* window)

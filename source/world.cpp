@@ -5,13 +5,15 @@
 World::World()
 {
     // ---------------------------------- Loading Assets ----------------------------------
+    // Load heightmap.
+    heightmap = std::make_shared<Heightmap>("resources/heightmaps/mountains.png");
     // Load each shader.
-    defaultShader.Load(   "resources/shaders/default.vert",   "resources/shaders/default.frag");
-    blankShader.Load(     "resources/shaders/blank.vert",     "resources/shaders/blank.frag");
-    instancedShader.Load( "resources/shaders/instanced.vert", "resources/shaders/default.frag");
-    outlineShader.Load(   "resources/shaders/outline.vert",   "resources/shaders/outline.frag");
-    textShader.Load(      "resources/shaders/text.vert",      "resources/shaders/text.frag");
-    idShader.Load(        "resources/shaders/id.vert",        "resources/shaders/id.frag");
+    defaultShader =     std::make_shared<Shader>("resources/shaders/default.vert",  "resources/shaders/default.frag");
+    blankShader =       std::make_shared<Shader>("resources/shaders/blank.vert",    "resources/shaders/blank.frag");
+    instancedShader =   std::make_shared<Shader>("resources/shaders/instanced.vert","resources/shaders/default.frag");
+    outlineShader =     std::make_shared<Shader>("resources/shaders/outline.vert",  "resources/shaders/outline.frag");
+    textShader =        std::make_shared<Shader>("resources/shaders/text.vert",     "resources/shaders/text.frag");
+    idShader =          std::make_shared<Shader>("resources/shaders/id.vert",       "resources/shaders/id.frag");
     // Load each model.
     ladaModel = std::make_shared<Model>(   "resources/models/lada/scene.gltf",   physicsCommon);
     cubeModel = std::make_shared<Model>(   "resources/models/cube/scene.gltf",   physicsCommon);
@@ -71,19 +73,19 @@ World::World()
     // Set the position of the light.
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
     // Pass the lighting to the defaultShader.
-	defaultShader.Activate();
-	glUniform4f(glGetUniformLocation(defaultShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(defaultShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-    // Pass the lighting to the instancedShader.
-	instancedShader.Activate();
-	glUniform4f(glGetUniformLocation(instancedShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(instancedShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	defaultShader->use();
+	glUniform4f(glGetUniformLocation(defaultShader->ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(defaultShader->ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+    // Pass the lighting to the instancedShader->
+	instancedShader->use();
+	glUniform4f(glGetUniformLocation(instancedShader->ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(instancedShader->ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
     // ---------------------------------- Text Renderer Setup ----------------------------------
-    // Pass an appropriate projection matrix to the text shader.
+    // Pass an appropriate projection matrix to the text shader->
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(Screen::frameBufferWidth), 0.0f, static_cast<float>(Screen::frameBufferHeight));
-    textShader.Activate();
-    glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    textShader->use();
+    glUniformMatrix4fv(glGetUniformLocation(textShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     // ---------------------------------- Physics Setup ----------------------------------
     // Set the gravity to a realistic number.
@@ -254,6 +256,8 @@ void World::Draw(){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         // Updates the camera matrix for sending to shaders.
         camera.updateMatrix(45.0f, 0.1f, 10000.0f);
+        // Draw the heightmap.
+        heightmap->Draw(camera);
         // Sends the transform of each object to their model
         // so they can be rendered as a batch.
         for(auto &object : objects){

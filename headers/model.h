@@ -4,8 +4,8 @@
 #include<json/json.h>
 #include <fstream>
 #include <reactphysics3d/reactphysics3d.h>
+#include <learnopengl/shader_t.h>
 #include"mesh.h"
-#include"shader.h"
 #include"texture.h"
 #include"stringSwitch.h"
 
@@ -31,12 +31,12 @@ public:
     ~Model();
 
     bool readyToInstance();
-    void drawInstanced(Shader& shader, Camera& camera);
-    void drawBatch(Shader& shader, Camera& camera);
-    void Draw(Shader& shader, Camera& camera);
-    void drawOutline(Shader& outlineShader, Camera& camera);
-    void drawId(Shader& shader, Camera& camera, int id);
-    void drawPrepOutline(Shader& shader, Camera& camera);
+    void drawInstanced(std::shared_ptr<Shader>& shader, Camera& camera);
+    void drawBatch(std::shared_ptr<Shader>& shader, Camera& camera);
+    void Draw(std::shared_ptr<Shader>& shader, Camera& camera);
+    void drawOutline(std::shared_ptr<Shader>& outlineShader, Camera& camera);
+    void drawId(std::shared_ptr<Shader>& shader, Camera& camera, int id);
+    void drawPrepOutline(std::shared_ptr<Shader>& shader, Camera& camera);
     void setTransform(glm::mat4& transform);
 
     // these are used to correct for the model we imported
@@ -63,7 +63,7 @@ private:
 
     float mass = 10.0f;
 
-    void setUniforms(Shader& shader, Camera& camera);
+    void setUniforms(std::shared_ptr<Shader>& shader, Camera& camera);
 
     std::string fileStr;
     std::string fileDirectory;

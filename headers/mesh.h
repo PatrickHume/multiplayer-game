@@ -42,17 +42,17 @@ class Mesh
         ~Mesh();
 
         void drawSimple(
-            Shader& shader, 
+            std::shared_ptr<Shader>& shader, 
             Camera& camera);
 
         void drawInstanced(
-            Shader& shader, 
+            std::shared_ptr<Shader>& shader, 
             Camera& camera,
             std::vector<std::shared_ptr<Texture>>& textures,
             unsigned int numInstances);
 
         void Draw(
-            Shader& shader, 
+            std::shared_ptr<Shader>& shader, 
             Camera& camera,
             std::vector<std::shared_ptr<Texture>>& textures);
 

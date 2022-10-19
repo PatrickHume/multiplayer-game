@@ -82,14 +82,14 @@ TextRenderer::~TextRenderer(){
     std::cout << "Deleted Text Renderer" << std::endl;   
 }
 
-void TextRenderer::renderText(Shader &s, std::string text, float x, float y, float scale, glm::vec3 color)
+void TextRenderer::renderText(std::shared_ptr<Shader>& s, std::string text, float x, float y, float scale, glm::vec3 color)
 {
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // activate corresponding render state	
-    s.Activate();
-    glUniform3f(glGetUniformLocation(s.ID, "textColor"), color.x, color.y, color.z);
+    s->use();
+    glUniform3f(glGetUniformLocation(s->ID, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 

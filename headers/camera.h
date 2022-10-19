@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
-#include"shader.h"
+#include <learnopengl/shader_t.h>
 #include"screen.h"
 
 // Stores camera position and orientation - also handles camera input controls
@@ -26,12 +26,18 @@ public:
     bool locked = false;
     void setPosition(glm::vec3 position);
     void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
-    void sendMatrix(Shader& shader, const char* uniform);
-    void sendPosition(Shader& shader, const char* uniform);
+    void sendMatrix(std::shared_ptr<Shader>& shader, const char* uniform);
+    void sendPosition(std::shared_ptr<Shader>& shader, const char* uniform);
     void Inputs(GLFWwindow* window);
+    glm::mat4& getView();
+    glm::mat4& getProjection();
     glm::vec3 getPositionInFront(float dist = 5);
     glm::vec3 getOrientation();
 private:
+    // The matrix representing the orientation of the camera.
+    glm::mat4 view;
+    // The matrix representing the perspective of the camera.
+    glm::mat4 projection;
     // The position of the camera.
 	glm::vec3 position;
     // The direction vector representing the camera's orientation.

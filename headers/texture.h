@@ -3,8 +3,7 @@
 
 #include<glad/glad.h>
 #include<stb/stb_image.h>
-
-#include"shader.h"
+#include<learnopengl/shader_t.h>
 
 class Texture
 {
@@ -15,7 +14,7 @@ class Texture
         Texture(const char* image, const char* texType, GLuint slot);
         ~Texture();
         
-        void texUnit(Shader& shader, const char* uniform);
+        void texUnit(std::shared_ptr<Shader>& shader, const char* uniform);
         void Bind();
         void Unbind();
         void Delete();

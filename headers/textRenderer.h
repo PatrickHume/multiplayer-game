@@ -11,8 +11,8 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 #include<glm/glm.hpp>
-
-#include"shader.h"
+#include<learnopengl/shader_t.h>
+#include<memory>
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
@@ -31,7 +31,7 @@ class TextRenderer
     public:
         TextRenderer();
         ~TextRenderer();
-        void renderText(Shader &s, std::string text, float x, float y, float scale, glm::vec3 color);
+        void renderText(std::shared_ptr<Shader>& s, std::string text, float x, float y, float scale, glm::vec3 color);
     private:
         std::map<char, Character> characters;
         unsigned int VAO, VBO;

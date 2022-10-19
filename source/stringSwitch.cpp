@@ -41,6 +41,23 @@ bool isNumber(const std::string &s) {
   return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
+// Reads a text file and outputs its contents to a string.
+std::string getFileContents(const char* filename)
+{
+	std::ifstream in(filename, std::ios::binary);
+	if (in)
+	{
+		std::string contents;
+		in.seekg(0, std::ios::end);
+		contents.resize(in.tellg());
+		in.seekg(0, std::ios::beg);
+		in.read(&contents[0], contents.size());
+		in.close();
+		return(contents);
+	}
+	throw(errno);
+}
+
 /*
 //https://stackoverflow.com/questions/3418231/replace-part-of-a-string-with-another-string
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {
