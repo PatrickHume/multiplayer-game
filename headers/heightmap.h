@@ -30,7 +30,7 @@ class Heightmap
         std::shared_ptr<Texture> texture;
         // Set the number of patches across and down.
         // The total number is rez^2.
-        unsigned rez = 32;
+        unsigned int rez = 32;
 };
 
 #endif

@@ -17,8 +17,8 @@ Heightmap::Heightmap(const char *filename)
     width = texture->getWidth();
     height = texture->getHeight();
 
-    for(unsigned i = 0; i <= rez-1; i++){
-        for(unsigned j = 0; j <= rez-1; j++){
+    for(unsigned int i = 0; i <= rez-1; i++){
+        for(unsigned int j = 0; j <= rez-1; j++){
             vertices.push_back(-width/2.0f + width*i/(float)rez);       // v.x
             vertices.push_back(0.0f);                                   // v.y
             vertices.push_back(-height/2.0f + height*j/(float)rez);     // v.z

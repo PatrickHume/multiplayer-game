@@ -1,12 +1,11 @@
 // https://learnopengl.com/Guest-Articles/2021/Tessellation/Tessellation
 #version 410 core
 
-in float Height;
-
+uniform sampler2D heightMap;
+in vec2 fragTexCoord;
 out vec4 FragColor;
 
 void main()
 {
-	float h = (Height + 16)/64.0f;
-	FragColor = vec4(h, h, h, 1.0);
+	FragColor = texture(heightMap, fragTexCoord);
 }
