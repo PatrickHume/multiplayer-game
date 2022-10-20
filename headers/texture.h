@@ -10,8 +10,10 @@ class Texture
     public:
         GLuint ID;
         GLuint unit;
-        Texture(const char* image, GLuint slot);
+        Texture(int width, int height, int channels = 1, GLuint slot = 0);
+        Texture(const char* image, GLuint slot = 0);
         ~Texture();
+        void Load();
         
         void texUnit(std::shared_ptr<Shader>& shader, const char* uniform);
         void Bind();
@@ -23,6 +25,7 @@ class Texture
     private:
         // Stores the width, height, and the number of color channels of the image
         int widthImg, heightImg, numColCh;
+        unsigned char* bytes;
 };
 
 #endif

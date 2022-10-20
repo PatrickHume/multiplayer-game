@@ -1,21 +1,34 @@
 #include"../headers/texture.h"
 
+// A texture constructor for a blank texture
+Texture::Texture(int width, int height, int channels, GLuint slot)
+{
+    widthImg = width;
+    heightImg = height;
+    numColCh = channels;
+    bytes = NULL;
+    Load();
+}
+
 Texture::Texture(const char* image, GLuint slot)
 {
 	// Flips the image so it appears right side up
 	stbi_set_flip_vertically_on_load(true);
 
 	// Reads the image from a file and stores it in bytes
-	unsigned char* bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
+	bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
+    unit = slot;
 
     std::cout << widthImg << ", " << heightImg << std::endl;
     std::cout << image << ", " << numColCh << std::endl;
 
+    Load();
+}
+void Texture::Load(){
 	// Generates an OpenGL texture object
 	glGenTextures(1, &ID);
 	// Assigns the texture to a Texture Unit
-	glActiveTexture(GL_TEXTURE0 + slot);
-    unit = slot;
+	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, ID);
 
 	// Configures the type of algorithm that is used to make the image smaller or bigger
@@ -72,8 +85,10 @@ Texture::Texture(const char* image, GLuint slot)
 	// Generates MipMaps
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Deletes the image data as it is already in the OpenGL Texture object
-	stbi_image_free(bytes);
+    if(bytes){
+        // Deletes the image data as it is already in the OpenGL Texture object
+        stbi_image_free(bytes);
+    }
 
 	// Unbinds the OpenGL Texture object so that it can't accidentally be modified
 	glBindTexture(GL_TEXTURE_2D, 0);
