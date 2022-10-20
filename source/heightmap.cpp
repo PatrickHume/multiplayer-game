@@ -125,6 +125,7 @@ Heightmap::Heightmap(const char *filename)
     GLfloat* floatBuffer = new GLfloat[width * height];
     glReadBuffer(GL_COLOR_ATTACHMENT2);
     std::cout << "glReadBuffer: " << glGetError() << std::endl;
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, floatBuffer);
     std::cout << "glReadPixels: " << glGetError() << std::endl;
 
@@ -160,7 +161,11 @@ void Heightmap::Draw(Camera& camera)
     //glm::mat4 ortho = glm::ortho((float)(-width/2), (float)(width/2), (float)(-height/2), (float)(height/2), 0.0f, 10000.0f);
 
     texture->Bind();
-    texture->texUnit(setupShader, "heightMap");
+    texture->texUnit(tesselationShader, "heightMap");
+
+    //tessLevelsTexture->Bind();
+    //tessLevelsTexture->texUnit(tesselationShader, "tessLevels");
+
     glm::mat4 model = glm::mat4(1.0f);
     tesselationShader->use();
     tesselationShader->setMat4("projection",camera.getProjection());
@@ -168,5 +173,7 @@ void Heightmap::Draw(Camera& camera)
     tesselationShader->setMat4("model",     model);
     glBindVertexArray(terrainVAO);
     glDrawArrays(GL_PATCHES, 0, 4*rez*rez);
+
     texture->Unbind();
+    //tessLevelsTexture->Unbind();
 }

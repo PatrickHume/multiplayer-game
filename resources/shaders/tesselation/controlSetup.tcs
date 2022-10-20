@@ -27,7 +27,7 @@ void main()
         // ----------------------------------------------------------------------
         // Define constants to control tessellation parameters
         // set these as desired for your world scale
-        const int TESS_LEVEL = 64;
+        const int TESS_LEVEL = 6;
 
         // ----------------------------------------------------------------------
         // Set the corresponding outer edge tessellation levels
