@@ -49,6 +49,7 @@ commitlint.config.js
 *.pprof
 *.supp
 valgrind-out.txt
+notes.txt
 
 models
 tests

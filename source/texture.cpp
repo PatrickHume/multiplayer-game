@@ -9,7 +9,7 @@ Texture::Texture(const char* image, GLuint slot)
 	unsigned char* bytes = stbi_load(image, &widthImg, &heightImg, &numColCh, 0);
 
     std::cout << widthImg << ", " << heightImg << std::endl;
-    std::cout << image << ", " << ", " << numColCh << std::endl;
+    std::cout << image << ", " << numColCh << std::endl;
 
 	// Generates an OpenGL texture object
 	glGenTextures(1, &ID);

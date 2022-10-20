@@ -19,7 +19,22 @@ Screen::Screen(){
 };
 
 // Set the values to match the dimensions of the screen given by GLFW.
-void Screen::recordNewWindowDimensions(GLFWwindow *window){
-    glfwGetWindowSize(window, &Screen::windowWidth, &Screen::windowHeight);
-    glfwGetFramebufferSize(window, &Screen::frameBufferWidth, &Screen::frameBufferHeight);
+void Screen::updateAndResize(GLFWwindow *window, int height = 0, int width = 0){
+    Screen::recordDimensions(window);
+    Screen::resizeViewport();
 };
+
+void Screen::resizeViewport(){
+    // Adjust the width to match the aspect ratio.
+    int width = Screen::frameBufferHeight * Screen::windowAspect;
+    int left = (Screen::frameBufferWidth - width) / 2;
+    int height = Screen::frameBufferHeight;
+    glViewport(left, 0, width, height);
+}
+
+void Screen::recordDimensions(GLFWwindow *window){
+    // Record the new window size.
+    glfwGetWindowSize(window, &Screen::windowWidth, &Screen::windowHeight);
+    // Record the new framebuffer size.
+    glfwGetFramebufferSize(window, &Screen::frameBufferWidth, &Screen::frameBufferHeight);
+}

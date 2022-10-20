@@ -1,0 +1,44 @@
+// https://learnopengl.com/Guest-Articles/2021/Tessellation/Tessellation
+// tessellation control shader
+#version 410 core
+
+// specify number of control points per patch output
+// this value controls the size of the input and output arrays
+layout (vertices=4) out;
+
+uniform sampler2D tessLevel;  // the tesselation level for each patch
+
+// varying input from vertex shader
+in vec2 TexCoord[];
+// varying output to evaluation shader
+out vec2 TextureCoord[];
+
+void main()
+{
+    // ----------------------------------------------------------------------
+    // pass attributes through
+    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+    TextureCoord[gl_InvocationID] = TexCoord[gl_InvocationID];
+
+    // ----------------------------------------------------------------------
+    // invocation zero controls tessellation levels for the entire patch
+    if(gl_InvocationID == 0)
+    {
+        // ----------------------------------------------------------------------
+        // Define constants to control tessellation parameters
+        // set these as desired for your world scale
+        const int TESS_LEVEL = 64;
+
+        // ----------------------------------------------------------------------
+        // Set the corresponding outer edge tessellation levels
+        gl_TessLevelOuter[0] = TESS_LEVEL;
+        gl_TessLevelOuter[1] = TESS_LEVEL;
+        gl_TessLevelOuter[2] = TESS_LEVEL;
+        gl_TessLevelOuter[3] = TESS_LEVEL;
+
+        // ----------------------------------------------------------------------
+        // Set the inner tessellation levels to the max of the two parallel edges
+        gl_TessLevelInner[0] = TESS_LEVEL;
+        gl_TessLevelInner[1] = TESS_LEVEL;
+    }
+}

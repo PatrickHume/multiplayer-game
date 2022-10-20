@@ -7,7 +7,9 @@
 class Screen{
     public:
         Screen();
-        static void recordNewWindowDimensions(GLFWwindow *window);
+        static void updateAndResize(GLFWwindow *window, int height, int width);
+        static void resizeViewport();
+        static void recordDimensions(GLFWwindow *window);
         // The viewport width in pixels.
         static int frameBufferWidth;
         // The viewport height in pixels.

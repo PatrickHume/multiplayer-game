@@ -6,6 +6,8 @@
 // this value controls the size of the input and output arrays
 layout (vertices=4) out;
 
+uniform sampler2D tessLevel;  // the tesselation level for each patch
+
 // varying input from vertex shader
 in vec2 TexCoord[];
 // varying output to evaluation shader

@@ -57,7 +57,7 @@ int main()
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     // Record the window dimensions in the screen class.
-    Screen::recordNewWindowDimensions(window);
+    Screen::recordDimensions(window);
 
     // Create the world - this is where most of the game logic happens.
     World world = World();
@@ -102,11 +102,6 @@ int main()
 // Resize the viewport on window resize.
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    // Adjust the width to match the aspect ratio.
-    int w = height * Screen::windowAspect;
-    int left = (width - w) / 2;
-    // Set the viewport size.
-    glViewport(left, 0, w, height); 
-    // Record the new window dimensions in Screen.
-    Screen::recordNewWindowDimensions(window);
+    // Record the new window dimensions in Screen and resize.
+    Screen::updateAndResize(window, width, height);
 }
