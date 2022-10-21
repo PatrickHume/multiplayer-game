@@ -10,10 +10,9 @@ uniform mat4 projection;      // the projection matrix
 // received from Tessellation Control Shader - all texture coordinates for the patch vertices
 in vec2 TextureCoord[];
 
-// send to Fragment Shader for recording heights to texture.
-out float HeightScaled;
-
-// send to Fragment Shader for coloring
+// send to Fragment Shader for displaying tessellated height
+out float height;
+// send to Fragment Shader for texturing true height
 out vec2 fragTexCoord;
 
 void main()
@@ -35,12 +34,11 @@ void main()
     fragTexCoord = (t1 - t0) * v + t0;
 
     // lookup texel at patch coordinate for height and scale + shift as desired
-    float Height = texture(heightMap, fragTexCoord).r * 64.0 - 16.0;
-    HeightScaled = texture(heightMap, fragTexCoord).r * 255.0;
+    height = texture(heightMap, fragTexCoord).r;
 
     // ----------------------------------------------------------------------
-    // The shader seems to need gl_in to be read or else it fails...
-    // I am not sure as to why.
+    // The shader seems to need gl_in to be read or else provides gives incorrect outputs...
+    // I am not sure as to why
     vec4 p00 = gl_in[0].gl_Position;
     vec4 p01 = gl_in[1].gl_Position;
     vec4 p10 = gl_in[2].gl_Position;
@@ -48,4 +46,3 @@ void main()
 
     gl_Position = projection * vec4(fragTexCoord[0], fragTexCoord[1], 1.0, 1.0);
 }
-	

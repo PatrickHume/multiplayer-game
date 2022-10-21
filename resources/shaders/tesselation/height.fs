@@ -2,12 +2,11 @@
 uniform sampler2D heightMap;
 
 in vec2 fragTexCoord;
+in float height;
 
-in float HeightScaled;
-
-layout (location = 0) out float FragColor;
+out float FragColor;
 
 void main()
 {
-   FragColor = abs((texture(heightMap, fragTexCoord).r*255.0) - HeightScaled);
+   FragColor = abs(texture(heightMap, fragTexCoord).r - height) * 255.0;
 }
