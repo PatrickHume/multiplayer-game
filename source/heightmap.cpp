@@ -3,7 +3,7 @@
 // Based heavily on https://learnopengl.com/Guest-Articles/2021/Tessellation/Tessellation
 Heightmap::Heightmap(const char *filename)
 {
-    minTessLevels.reserve(rez);
+    minTessLevels.fill(0);
 
     GLint maxTessLevel;
     glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
@@ -17,6 +17,7 @@ Heightmap::Heightmap(const char *filename)
         "resources/shaders/tesselation/controlShader.tcs", 
         "resources/shaders/tesselation/evaluationShader.tes"); 
 
+    tessLevelsTexture = std::make_shared<Texture>(rez, rez);
     texture = std::make_shared<Texture>(filename, 0);
     width = texture->getWidth();
     height = texture->getHeight();
@@ -129,11 +130,37 @@ Heightmap::Heightmap(const char *filename)
     glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, floatBuffer);
     std::cout << "glReadPixels: " << glGetError() << std::endl;
 
-    unsigned char* charBuffer = new unsigned char[width * height * 4];
+    tessLevelError.fill(0.0);
 
-    //for(int i = 0; i < width * height; i++){
-    //    std::cout << floatBuffer[i] << std::endl;    
-    //}
+    for(int i = 0; i < width * height; i++){
+        int imageY = i/width;
+        int imageX = i-(imageY*width);
+
+        int tessY = (imageY*rez) / height;
+        int tessX = (imageX*rez) / width;
+
+        int pos = (tessY*rez) + tessX;
+      
+        tessLevelError[pos] += floatBuffer[i];    
+    }
+
+    unsigned char* charBuffer = new unsigned char[width * height * 4];
+    for(int y = 0; y < rez; y++){
+        for(int x = 0; x < rez; x++){
+            int pos = (y*rez) + x;
+            std::cout << tessLevelError[pos] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    //float highestError = *std::max_element(tessLevelError.begin(), tessLevelError.end());
+
+    float highestError = 255.0f * (int)(width/rez)*(int)(height/rez);
+    unsigned char* errorData = new unsigned char[tessLevelError.size()];
+    for(int i = 0; i < tessLevelError.size(); i++){
+        errorData[i] = (unsigned char)(fmin((tessLevelError[tessLevelError.size()-1-i]/highestError)*255.0,255.0));
+    }
+    stbi_write_png("patchErrors.png", rez, rez, 1, errorData, rez);
 
     for(int i = 0; i < width * height; i++){
         charBuffer[i] = (unsigned char)(floatBuffer[(width * height) - 1 - i]);
@@ -143,14 +170,11 @@ Heightmap::Heightmap(const char *filename)
 
     //exit(0);
 
-    //delete[] buffer;
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
     Screen::resizeViewport();
 
     //exit(0);
-    
 }
 Heightmap::~Heightmap()
 {

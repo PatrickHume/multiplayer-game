@@ -8,6 +8,7 @@
 #include<iostream>
 #include<cerrno>
 #include<vector>
+#include<array>
 #include <glad/glad.h>
 #include <learnopengl/shader_t.h>
 #include"VAO.h"
@@ -38,10 +39,12 @@ class Heightmap
         std::shared_ptr<Shader> tesselationShader;
         std::shared_ptr<Shader> setupShader;
         std::shared_ptr<Texture> texture;
+        std::shared_ptr<Texture> tessLevelsTexture;
         // Set the number of patches across and down.
         // The total number is rez^2.
-        const unsigned int rez = 20;
-        std::vector<int> minTessLevels;
+        static const unsigned int rez = 20;
+        std::array<int, rez*rez> minTessLevels;
+        std::array<float, rez*rez> tessLevelError;
 };
 
 #endif
