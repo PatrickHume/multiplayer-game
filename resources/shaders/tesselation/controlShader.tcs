@@ -6,7 +6,7 @@
 // this value controls the size of the input and output arrays
 layout (vertices=4) out;
 
-uniform sampler2D tessLevel;  // the tesselation level for each patch
+uniform sampler2D tessLevels;  // the tesselation level for each patch
 
 // varying input from vertex shader
 in vec2 TexCoord[];
@@ -28,44 +28,39 @@ void main()
     if(gl_InvocationID == 0)
     {
         // ----------------------------------------------------------------------
+        // Get the center of the quad and sample the tesselation level image
+        vec2 avgTexCoord = (TexCoord[0] + TexCoord[1] + TexCoord[2] + TexCoord[3]) / 4;
+        vec2 size = abs(avgTexCoord - TexCoord[0])*2.0;
+
         // Step 1: define constants to control tessellation parameters
         // set these as desired for your world scale
-        const int MIN_TESS_LEVEL = 1;
-        const int MAX_TESS_LEVEL = 64;
-        const float MIN_DISTANCE = 200;
-        const float MAX_DISTANCE = 800;
+        int MIN_TESS_LEVEL = int(texture(tessLevels, avgTexCoord).r*255.0);
+        const int MAX_TESS_LEVEL = 32;
+        const float MIN_DISTANCE = 100;
+        const float MAX_DISTANCE = 400;
+        
+        float PATCH_WIDTH  = size.x;
+        float PATCH_HEIGHT = size.y;
 
-        // ----------------------------------------------------------------------
-        // Step 2: transform each vertex into eye space
-        vec4 eyeSpacePos00 = view * model * gl_in[0].gl_Position;
-        vec4 eyeSpacePos01 = view * model * gl_in[1].gl_Position;
-        vec4 eyeSpacePos10 = view * model * gl_in[2].gl_Position;
-        vec4 eyeSpacePos11 = view * model * gl_in[3].gl_Position;
+        int EAST_MIN_TESS_LEVEL   = int(texture(tessLevels, avgTexCoord+vec2(-PATCH_HEIGHT, 0.0)).r*255.0);
+        int WEST_MIN_TESS_LEVEL   = int(texture(tessLevels, avgTexCoord+vec2( PATCH_HEIGHT, 0.0)).r*255.0);
+        int NORTH_MIN_TESS_LEVEL  = int(texture(tessLevels, avgTexCoord+vec2( 0.0, -PATCH_WIDTH)).r*255.0);
+        int SOUTH_MIN_TESS_LEVEL  = int(texture(tessLevels, avgTexCoord+vec2( 0.0,  PATCH_WIDTH)).r*255.0);
 
-        // ----------------------------------------------------------------------
-        // Step 3: "distance" from camera scaled between 0 and 1
-        float distance00 = clamp((abs(eyeSpacePos00.z)-MIN_DISTANCE) / (MAX_DISTANCE-MIN_DISTANCE), 0.0, 1.0);
-        float distance01 = clamp((abs(eyeSpacePos01.z)-MIN_DISTANCE) / (MAX_DISTANCE-MIN_DISTANCE), 0.0, 1.0);
-        float distance10 = clamp((abs(eyeSpacePos10.z)-MIN_DISTANCE) / (MAX_DISTANCE-MIN_DISTANCE), 0.0, 1.0);
-        float distance11 = clamp((abs(eyeSpacePos11.z)-MIN_DISTANCE) / (MAX_DISTANCE-MIN_DISTANCE), 0.0, 1.0);
-
-        // ----------------------------------------------------------------------
-        // Step 4: interpolate edge tessellation level based on closer vertex
-        float tessLevel0 = mix( MAX_TESS_LEVEL, MIN_TESS_LEVEL, min(distance10, distance00) );
-        float tessLevel1 = mix( MAX_TESS_LEVEL, MIN_TESS_LEVEL, min(distance00, distance01) );
-        float tessLevel2 = mix( MAX_TESS_LEVEL, MIN_TESS_LEVEL, min(distance01, distance11) );
-        float tessLevel3 = mix( MAX_TESS_LEVEL, MIN_TESS_LEVEL, min(distance11, distance10) );
-
+        float south = max(MIN_TESS_LEVEL,NORTH_MIN_TESS_LEVEL);
+        float west  = max(MIN_TESS_LEVEL,EAST_MIN_TESS_LEVEL);
+        float north = max(MIN_TESS_LEVEL,SOUTH_MIN_TESS_LEVEL);
+        float east  = max(MIN_TESS_LEVEL,WEST_MIN_TESS_LEVEL);
         // ----------------------------------------------------------------------
         // Step 5: set the corresponding outer edge tessellation levels
-        gl_TessLevelOuter[0] = tessLevel0;
-        gl_TessLevelOuter[1] = tessLevel1;
-        gl_TessLevelOuter[2] = tessLevel2;
-        gl_TessLevelOuter[3] = tessLevel3;
+        gl_TessLevelOuter[0] = west;
+        gl_TessLevelOuter[1] = south;
+        gl_TessLevelOuter[2] = east;
+        gl_TessLevelOuter[3] = north;
 
         // ----------------------------------------------------------------------
         // Step 6: set the inner tessellation levels to the max of the two parallel edges
-        gl_TessLevelInner[0] = max(tessLevel1, tessLevel3);
-        gl_TessLevelInner[1] = max(tessLevel0, tessLevel2);
+        gl_TessLevelInner[0] = MIN_TESS_LEVEL;
+        gl_TessLevelInner[1] = MIN_TESS_LEVEL;
     }
 }

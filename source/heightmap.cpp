@@ -1,9 +1,10 @@
 #include"../headers/heightmap.h"
 
 // Based heavily on https://learnopengl.com/Guest-Articles/2021/Tessellation/Tessellation
-Heightmap::Heightmap(const char *filename)
+Heightmap::Heightmap(const char *file)
 {
-    minTessLevels.fill(0);
+    fileStr        = std::string(file);
+    fileDirectory  = fileStr.substr(0,fileStr.find_last_of('/')+1);
 
     GLint maxTessLevel;
     glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
@@ -17,10 +18,10 @@ Heightmap::Heightmap(const char *filename)
         "resources/shaders/tesselation/controlShader.tcs", 
         "resources/shaders/tesselation/evaluationShader.tes"); 
 
-    tessLevelsTexture = std::make_shared<Texture>(rez, rez);
-    texture = std::make_shared<Texture>(filename, 0);
-    width = texture->getWidth();
-    height = texture->getHeight();
+    tessLevelsTexture = std::make_shared<Texture>(rez, rez, 1, tessLevelsTexUnit);
+    heightmapTexture = std::make_shared<Texture>(file, heightmapTexUnit);
+    width = heightmapTexture->getWidth();
+    height = heightmapTexture->getHeight();
 
     for(unsigned int i = 0; i <= rez-1; i++){
         for(unsigned int j = 0; j <= rez-1; j++){
@@ -87,7 +88,7 @@ Heightmap::Heightmap(const char *filename)
     GLenum stat = glCheckFramebufferStatus(GL_FRAMEBUFFER);  
     if(stat != GL_FRAMEBUFFER_COMPLETE) { 
         throw std::runtime_error("Heightmap framebuffer is not framebuffer complete.");
-        }
+    }
     // Set up color attachment to draw buffer 1.
     const GLenum att[] = {GL_COLOR_ATTACHMENT2};
     glDrawBuffers(1, att);
@@ -102,80 +103,163 @@ Heightmap::Heightmap(const char *filename)
         "resources/shaders/tesselation/controlSetup.tcs", 
         "resources/shaders/tesselation/evaluationSetup.tes"); 
 
+    tessLevels = loadTessLevelImage();
+    tessLevelsTexture->loadData(&tessLevels[0]);
+}
+
+std::array<unsigned char, Heightmap::rez*Heightmap::rez> Heightmap::loadTessLevelImage(){
+    std::array<float, rez*rez>  tessLevelError;
+    std::array<bool, rez*rez>   patchIsLocked;
+    std::array<unsigned char, rez*rez> tessLevelBuffer;
+    std::array<unsigned char, rez*rez> errorData;
+    std::array<unsigned char, rez*rez> patchCharBuffer;
+
+    std::string fileStrNoExt    = fileStr.substr(0,fileStr.find_last_of('.'));
+    std::string outputFile      = fileStrNoExt+"TessLevels.png";
+
+    int widthImg;
+    int heightImg;
+    int numColCh;
+
+    std::cout << "Searching for file: " << outputFile << std::endl;
+
+    stbi_set_flip_vertically_on_load(false);
+    unsigned char* bytes = stbi_load(outputFile.c_str(), &widthImg, &heightImg, &numColCh, 0);
+    if(bytes){
+        std::cout << "File found." << std::endl;
+        if(numColCh != 1){
+            std::cout << "Number of channels in heightmap tessLevels image is not equal to 1." << std::endl;
+        }
+        else if(widthImg != rez){
+            std::cout << "Height of heightmap tessLevels image is not equal to rez." << std::endl;
+        }
+        else if(heightImg != rez){
+            std::cout << "Width of heightmap tessLevels image is not equal to rez." << std::endl;
+        }else{
+            for(int i = 0; i < tessLevelBuffer.size(); i++){
+                tessLevelBuffer[i] = (unsigned char)bytes[i];
+            }            
+            // Deletes the image data as it is already in the OpenGL Texture object
+            stbi_image_free(bytes);
+            return tessLevelBuffer;
+        }
+    }
+    std::cout << "Creating tessLevels image." << std::endl;
+
     glm::mat4 ortho = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, -2.0f, 2.0f);
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebufId);
-    std::cout << "glBindFramebuffer: " << glGetError() << std::endl;
-
     glViewport(0,0,width,height);
     glDisable(GL_DEPTH_TEST);
-    glClearColor(1.0,1.0,1.0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    std::cout << "glClearColor: " << glGetError() << std::endl;
 
     setupShader->use();
     setupShader->setMat4("projection",ortho);
-    texture->Bind();
-    texture->texUnit(setupShader, "heightMap");
+
+    heightmapTexture->Bind();
+    heightmapTexture->texUnit(setupShader, "heightMap");
+
     glBindVertexArray(terrainVAO);
-    glDrawArrays(GL_PATCHES, 0, 4*rez*rez);
-    texture->Unbind();
 
-    glFinish();
+    floatBuffer.resize(width*height);
+    screenCharBuffer.resize(width*height);
 
-    GLfloat* floatBuffer = new GLfloat[width * height];
-    glReadBuffer(GL_COLOR_ATTACHMENT2);
-    std::cout << "glReadBuffer: " << glGetError() << std::endl;
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, floatBuffer);
-    std::cout << "glReadPixels: " << glGetError() << std::endl;
+    tessLevelBuffer.fill((unsigned char)1);
+    patchIsLocked.fill(false);
 
-    tessLevelError.fill(0.0);
+    for(int currentTessLevel = 1; currentTessLevel <= 32; currentTessLevel++){
+        std::cout << "Evaluating Tessellation Level " << currentTessLevel << std::endl;
 
-    for(int i = 0; i < width * height; i++){
-        int imageY = i/width;
-        int imageX = i-(imageY*width);
+        tessLevelsTexture->loadData(&tessLevelBuffer[0]);
 
-        int tessY = (imageY*rez) / height;
-        int tessX = (imageX*rez) / width;
+        tessLevelsTexture->Bind();
+        tessLevelsTexture->texUnit(setupShader, "tessLevels");
 
-        int pos = (tessY*rez) + tessX;
-      
-        tessLevelError[pos] += floatBuffer[i];    
-    }
+        glFinish();
 
-    unsigned char* charBuffer = new unsigned char[width * height * 4];
-    for(int y = 0; y < rez; y++){
-        for(int x = 0; x < rez; x++){
-            int pos = (y*rez) + x;
-            std::cout << tessLevelError[pos] << " ";
+        glClearColor(1.0,1.0,1.0,1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glDrawArrays(GL_PATCHES, 0, 4*rez*rez);
+        heightmapTexture->Unbind();
+        glFinish();
+
+        glReadBuffer(GL_COLOR_ATTACHMENT2);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, width, height, GL_RED, GL_FLOAT, &floatBuffer[0]);
+
+        tessLevelError.fill(0.0);
+
+        for(int i = 0; i < width * height; i++){
+            int imageY = i/width;
+            int imageX = i-(imageY*width);
+
+            int tessY = (imageY*rez) / height;
+            int tessX = (imageX*rez) / width;
+
+            int pos = (tessY*rez) + tessX;
+        
+            tessLevelError[pos] += floatBuffer[i];    
         }
-        std::cout << std::endl;
+
+        float highestError = 255.0f * (int)(width/rez)*(int)(height/rez);
+
+        for(int i = 0; i < rez*rez; i++){
+            float error = std::fmin((tessLevelError[i]/highestError)*255.0,255.0);
+            errorData[i] = (unsigned char)error;
+
+            const float tolerance = 4.0;
+            if(!patchIsLocked[i]){
+                if(error > tolerance){
+                    tessLevelBuffer[i] = (unsigned char)(currentTessLevel + 1);
+                }else{
+                    tessLevelBuffer[i] = (unsigned char)(currentTessLevel);
+                    patchIsLocked[i] = true;
+                }
+            }
+        }
+
+        /*
+        std::string file;
+        for(int i = 0; i < patchCharBuffer.size(); i++){
+            patchCharBuffer[i] = errorData[patchCharBuffer.size() -i -1];
+        }
+        file = "images/patchErrors/pe"+std::to_string(currentTessLevel)+".png";
+        stbi_write_png(file.c_str(), rez, rez, 1, &patchCharBuffer[0], rez);
+
+        for(int i = 0; i < floatBuffer.size(); i++){
+            screenCharBuffer[i] = (unsigned char)(floatBuffer[floatBuffer.size() - 1 - i]);
+        }
+        file = "images/pixelErrors/px"+std::to_string(currentTessLevel)+".png";
+        stbi_write_png(file.c_str(), width, height, 1, &screenCharBuffer[0], width);
+
+        patchCharBuffer.fill((unsigned char)0);
+        for(int i = 0; i < patchCharBuffer.size(); i++){
+            if(patchIsLocked[patchCharBuffer.size() -1 -i])
+                patchCharBuffer[i] = (unsigned char)255;
+        }
+        file = "images/isLocked/lk"+std::to_string(currentTessLevel)+".png";
+        stbi_write_png(file.c_str(), rez, rez, 1, &patchCharBuffer[0], rez);
+
+        for(int i = 0; i < patchCharBuffer.size(); i++){
+            patchCharBuffer[i] = tessLevelBuffer[patchCharBuffer.size() -i -1];
+        }
+        file = "images/tessLevels/tl"+std::to_string(currentTessLevel)+".png";
+        stbi_write_png(file.c_str(), rez, rez, 1, &patchCharBuffer[0], rez);
+        */
     }
 
-    //float highestError = *std::max_element(tessLevelError.begin(), tessLevelError.end());
+    heightmapTexture->Unbind();
+    tessLevelsTexture->Unbind();
 
-    float highestError = 255.0f * (int)(width/rez)*(int)(height/rez);
-    unsigned char* errorData = new unsigned char[tessLevelError.size()];
-    for(int i = 0; i < tessLevelError.size(); i++){
-        errorData[i] = (unsigned char)(fmin((tessLevelError[tessLevelError.size()-1-i]/highestError)*255.0,255.0));
-    }
-    stbi_write_png("patchErrors.png", rez, rez, 1, errorData, rez);
-
-    for(int i = 0; i < width * height; i++){
-        charBuffer[i] = (unsigned char)(floatBuffer[(width * height) - 1 - i]);
-    }
-
-    stbi_write_png("image.png", width, height, 1, charBuffer, width);
-
-    //exit(0);
+    stbi_write_png(outputFile.c_str(), rez, rez, 1, &tessLevelBuffer[0], rez);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glEnable(GL_DEPTH_TEST);
     Screen::resizeViewport();
 
-    //exit(0);
+    return tessLevelBuffer;
 }
+
 Heightmap::~Heightmap()
 {
 }
@@ -183,12 +267,13 @@ void Heightmap::Draw(Camera& camera)
 {
     //glm::mat4 ortho = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 100.0f);
     //glm::mat4 ortho = glm::ortho((float)(-width/2), (float)(width/2), (float)(-height/2), (float)(height/2), 0.0f, 10000.0f);
+    camera.sendPosition(tesselationShader, "camPos");
 
-    texture->Bind();
-    texture->texUnit(tesselationShader, "heightMap");
+    heightmapTexture->Bind();
+    heightmapTexture->texUnit(tesselationShader, "heightMap");
 
-    //tessLevelsTexture->Bind();
-    //tessLevelsTexture->texUnit(tesselationShader, "tessLevels");
+    tessLevelsTexture->Bind();
+    tessLevelsTexture->texUnit(tesselationShader, "tessLevels");
 
     glm::mat4 model = glm::mat4(1.0f);
     tesselationShader->use();
@@ -198,6 +283,6 @@ void Heightmap::Draw(Camera& camera)
     glBindVertexArray(terrainVAO);
     glDrawArrays(GL_PATCHES, 0, 4*rez*rez);
 
-    texture->Unbind();
-    //tessLevelsTexture->Unbind();
+    heightmapTexture->Unbind();
+    tessLevelsTexture->Unbind();
 }

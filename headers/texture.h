@@ -14,6 +14,7 @@ class Texture
         Texture(const char* image, GLuint slot = 0);
         ~Texture();
         void Load();
+        void loadData(unsigned char* data);
         
         void texUnit(std::shared_ptr<Shader>& shader, const char* uniform);
         void Bind();

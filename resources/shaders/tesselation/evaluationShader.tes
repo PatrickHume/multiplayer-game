@@ -15,6 +15,8 @@ in vec2 TextureCoord[];
 // send to Fragment Shader for coloring
 out vec2 fragTexCoord;
 
+out vec4 vertex;
+
 void main()
 {
     // get patch coordinate
@@ -55,8 +57,10 @@ void main()
     // displace point along normal
     p += normal * Height;
 
+    vertex = model * p;
+
     // ----------------------------------------------------------------------
     // output patch point position in clip space
-    gl_Position = projection * view * model * p;
+    gl_Position = projection * view * vertex;
 }
 	

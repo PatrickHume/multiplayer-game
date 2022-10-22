@@ -1,4 +1,5 @@
 #version 410 core
+
 uniform sampler2D heightMap;
 
 in vec2 fragTexCoord;

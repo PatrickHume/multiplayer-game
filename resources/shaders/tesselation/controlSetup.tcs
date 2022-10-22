@@ -6,7 +6,7 @@
 // this value controls the size of the input and output arrays
 layout (vertices=4) out;
 
-uniform sampler2D tessLevel;  // the tesselation level for each patch
+uniform sampler2D tessLevels;  // the tesselation level for each patch
 
 // varying input from vertex shader
 in vec2 TexCoord[];
@@ -25,9 +25,9 @@ void main()
     if(gl_InvocationID == 0)
     {
         // ----------------------------------------------------------------------
-        // Define constants to control tessellation parameters
-        // set these as desired for your world scale
-        const int TESS_LEVEL = 6;
+        // Get the center of the quad and sample the tesselation level image
+        vec2 avgTexCoord = (TexCoord[0] + TexCoord[1] + TexCoord[2] + TexCoord[3]) / 4;
+        int TESS_LEVEL = int(texture(tessLevels, avgTexCoord).r*255.0);
 
         // ----------------------------------------------------------------------
         // Set the corresponding outer edge tessellation levels

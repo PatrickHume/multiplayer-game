@@ -16,7 +16,7 @@ void Camera::sendMatrix(std::shared_ptr<Shader>& shader, const char* uniform)
 {
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
-// Sends the camera's position to the shader's "cameraMatrix" uniform.
+// Sends the camera's position to a shader's uniform.
 void Camera::sendPosition(std::shared_ptr<Shader>& shader, const char* uniform)
 {
     glUniform3f(glGetUniformLocation(shader->ID, uniform), position.x, position.y, position.z);

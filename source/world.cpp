@@ -261,11 +261,11 @@ void World::Update(){
 // Draws the game objects and renders object selections.
 void World::Draw(){
         // Clears the viewport with a solid color.
-        glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         // Resets the buffers.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         // Updates the camera matrix for sending to shaders.
-        camera.updateMatrix(45.0f, 0.1f, 10000.0f);
+        camera.updateMatrix(20.0f, 0.1f, 10000.0f);
         // Draw the heightmap.
         heightmap->Draw(camera);
         // Sends the transform of each object to their model
@@ -277,11 +277,11 @@ void World::Draw(){
         }
         // Render each model
         for(auto &model : models){
-            if(model->readyToInstance()){
-                model->drawInstanced(instancedShader, camera);
-            }else{
-                model->drawBatch(defaultShader, camera);
-            }
+            //if(model->readyToInstance()){
+            //    model->drawInstanced(instancedShader, camera);
+            //}else{
+            //    model->drawBatch(defaultShader, camera);
+            //}
         }
 
         if(user.hasSelectedObject()){

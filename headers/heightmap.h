@@ -38,13 +38,26 @@ class Heightmap
         GLuint terrainVAO, terrainVBO;
         std::shared_ptr<Shader> tesselationShader;
         std::shared_ptr<Shader> setupShader;
-        std::shared_ptr<Texture> texture;
+
+        std::shared_ptr<Texture> heightmapTexture;
         std::shared_ptr<Texture> tessLevelsTexture;
+
+        const GLuint heightmapTexUnit  = 0;
+        const GLuint tessLevelsTexUnit = 1;
+
         // Set the number of patches across and down.
         // The total number is rez^2.
-        static const unsigned int rez = 20;
-        std::array<int, rez*rez> minTessLevels;
-        std::array<float, rez*rez> tessLevelError;
+        static constexpr unsigned int rez = 20;
+
+        std::vector<float>          floatBuffer;
+        std::vector<unsigned char>  screenCharBuffer;
+
+        std::array<unsigned char, rez*rez> tessLevels;
+
+        std::string fileStr;
+        std::string fileDirectory;
+
+        std::array<unsigned char, rez*rez> loadTessLevelImage();
 };
 
 #endif
